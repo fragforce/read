@@ -47,7 +47,9 @@ These are commitments made in the publisher permission letter.
 
 ## Development
 
-Tech stack TBD - pending Frag Tech team input. See [REQUIREMENTS.md](REQUIREMENTS.md) for full technical requirements.
+Built with Django, deployed as Docker containers. Consistent with fragforce.org and existing Fragforce infrastructure patterns.
+
+See [REQUIREMENTS.md](REQUIREMENTS.md) for full technical requirements.
 
 ## Timeline
 
