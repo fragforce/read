@@ -1,4 +1,8 @@
 from django.contrib import admin
+from django.http import HttpResponseRedirect
+from django.urls import path
+from django.utils.html import format_html
+
 from .models import Book, Narrator, Recording, QRCode, Attestation
 
 
@@ -12,8 +16,42 @@ class BookAdmin(admin.ModelAdmin):
 
 @admin.register(Narrator)
 class NarratorAdmin(admin.ModelAdmin):
-    list_display = ("name", "email", "created_at")
+    list_display = ("name", "email", "has_passphrase", "created_at")
     search_fields = ("name", "email")
+    readonly_fields = ("passphrase_display",)
+    exclude = ("passphrase",)
+
+    @admin.display(boolean=True, description="Passphrase")
+    def has_passphrase(self, obj):
+        return bool(obj.passphrase)
+
+    def passphrase_display(self, obj):
+        value = obj.passphrase or "(none)"
+        if not obj.pk:
+            return value
+        return format_html(
+            '{} <button type="submit" name="_generate_passphrase" class="button"'
+            ' style="margin-left: 10px;">{}</button>',
+            value,
+            "Generate new passphrase",
+        )
+
+    passphrase_display.short_description = "Passphrase"
+
+    def response_change(self, request, obj):
+        if "_generate_passphrase" in request.POST:
+            from registration.wordlist import generate_passphrase
+
+            for _ in range(100):
+                passphrase = generate_passphrase()
+                if not Narrator.objects.filter(passphrase=passphrase).exists():
+                    obj.passphrase = passphrase
+                    obj.save(update_fields=["passphrase"])
+                    self.message_user(request, f"New passphrase generated: {passphrase}")
+                    return HttpResponseRedirect(request.path)
+            self.message_user(request, "Failed to generate unique passphrase", level="error")
+            return HttpResponseRedirect(request.path)
+        return super().response_change(request, obj)
 
 
 @admin.register(Recording)
