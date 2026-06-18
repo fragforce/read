@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome - Fragforce Reads{% endblock %}
+
+{% block extra_css %}
+.passphrase-box {
+    background: #37474f;
+    border: 1px solid #46a4e8;
+    border-radius: 4px;
+    padding: 1rem;
+    margin: 1rem 0;
+    font-family: monospace;
+    font-size: 1.1rem;
+    word-break: break-word;
+}
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Welcome, {{ narrator.name }}!</h2>
+    <p>You're registered as a narrator for Fragforce Reads.</p>
+
+    <p style="margin-top: 1.5rem;"><strong>Your passphrase:</strong></p>
+    <div class="passphrase-box">{{ narrator.passphrase }}</div>
+    <p style="font-size: 0.875rem; color: #aaa;">Save this passphrase - you'll use it to log back in and access your recordings.</p>
+
+    <p style="margin-top: 1.5rem;">The narrator portal will be available here soon - you'll be able to browse available books, record in your browser, and submit your reading.</p>
+</div>
+{% endblock %}
