@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <title>{{ book.title }} - Fragforce Read</title>
+</head>
+<body>
+    <header>
+        <h1>{{ book.title }}</h1>
+        <p>by {{ book.author }}</p>
+        {% if book.illustrator %}<p>Illustrated by: {{ book.illustrator }}</p>{% endif %}
+        {% if not book.public_domain and book.publisher %}<p>Published by: {{ book.publisher }}</p>{% endif %}
+    </header>
+
+    {% if password_required and not password_valid %}
+    <section>
+        <form method="post">
+            {% csrf_token %}
+            <label for="password">Enter password to listen:</label>
+            <input type="text" id="password" name="password" autocomplete="off" required>
+            <button type="submit">Unlock</button>
+        </form>
+    </section>
+    {% elif password_valid %}
+    <section>
+        <p>As read by: {{ recording.narrator.name }}</p>
+        <audio controls>
+            <source src="{{ recording.audio_file.url }}" type="audio/mpeg">
+            <p>Sorry, your browser does not support audio playback.</p>
+        </audio>
+    </section>
+
+    {% if not book.public_domain and book.permission_phrasing %}
+    <footer>
+        <p>{{ book.permission_phrasing }}</p>
+    </footer>
+    {% endif %}
+
+    {% if not book.public_domain and book.copyright_notice %}
+    <footer>
+        <p>{{ book.copyright_notice }}</p>
+    </footer>
+    {% endif %}
+    {% endif %}
+
+    <footer>
+        <p><a href="https://fragforce.org">fragforce.org</a></p>
+    </footer>
+</body>
+</html>
