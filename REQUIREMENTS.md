@@ -159,13 +159,16 @@ These additional requirements apply only to books where publisher permission has
 | Transcoding | Server-side WAV to MP3 (128kbps mono) |
 | HLS segmentation | Server-side MP3 to HLS segments (licensed titles only) |
 
+## Decided
+
+1. **Tech stack** - Django (Python), consistent with fragforce.org
+2. **Deployment** - Docker containers, same pattern as other Fragforce services
+
 ## Open Decisions
 
-1. **Tech stack** - Python (Django/Flask), Node, Go, static + serverless?
-2. **Architecture style** - static site + API, or fully static with flat-file backend?
-3. **Admin auth** - Discord OAuth, shared password, or existing Fragforce auth?
-4. **Hotlinking mitigation** - Cloudflare hotlink protection, referrer blocking, rate limiting, signed URLs?
-5. **HLS vs MSE** - HLS has broader native support; MSE gives more control but needs JS
+1. **Admin auth** - Discord OAuth, shared password, or existing Fragforce auth?
+2. **Hotlinking mitigation** - Cloudflare hotlink protection, referrer blocking, rate limiting, signed URLs?
+3. **HLS vs MSE** - HLS has broader native support; MSE gives more control but needs JS
 
 ## Effort Estimate
 
