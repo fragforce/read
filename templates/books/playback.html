@@ -1,52 +1,95 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="robots" content="noindex">
-    <title>{{ book.title }} - Fragforce Read</title>
-</head>
-<body>
-    <header>
-        <h1>{{ book.title }}</h1>
+{% extends "base.html" %}
+
+{% block title %}{{ book.title }} - Fragforce Reads{% endblock %}
+
+{% block extra_css %}
+.book-info {
+    margin-bottom: 1.5rem;
+}
+
+.book-info p {
+    margin: 0.25rem 0;
+}
+
+.password-form input {
+    padding: 0.5rem;
+    font-size: 1rem;
+    border: 1px solid #46a4e8;
+    border-radius: 4px;
+    background: #37474f;
+    color: #fff;
+    margin-right: 0.5rem;
+}
+
+.password-form button {
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    background: #46a4e8;
+    color: #253137;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.password-form button:hover {
+    background: #5bb5f5;
+}
+
+audio {
+    width: 100%;
+    margin-top: 1rem;
+}
+
+.narrator {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+    color: #46a4e8;
+}
+
+.attribution {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #37474f;
+    font-size: 0.85rem;
+    color: #aaa;
+}
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="book-info">
+        <h2>{{ book.title }}</h2>
         <p>by {{ book.author }}</p>
         {% if book.illustrator %}<p>Illustrated by: {{ book.illustrator }}</p>{% endif %}
         {% if not book.public_domain and book.publisher %}<p>Published by: {{ book.publisher }}</p>{% endif %}
-    </header>
+    </div>
 
     {% if password_required and not password_valid %}
-    <section>
-        <form method="post">
-            {% csrf_token %}
-            <label for="password">Enter password to listen:</label>
-            <input type="text" id="password" name="password" autocomplete="off" required>
-            <button type="submit">Unlock</button>
-        </form>
-    </section>
+    <form method="post" class="password-form">
+        {% csrf_token %}
+        <label for="password">Enter password to listen:</label><br><br>
+        <input type="text" id="password" name="password" autocomplete="off" required>
+        <button type="submit">Unlock</button>
+    </form>
     {% elif password_valid %}
-    <section>
-        <p>As read by: {{ recording.narrator.name }}</p>
-        <audio controls>
-            <source src="{{ recording.audio_file.url }}" type="audio/mpeg">
-            <p>Sorry, your browser does not support audio playback.</p>
-        </audio>
-    </section>
+    <p class="narrator">As read by: {{ recording.narrator.name }}</p>
+    <audio controls>
+        <source src="{{ recording.audio_file.url }}" type="audio/mpeg">
+        <p>Sorry, your browser does not support audio playback.</p>
+    </audio>
 
     {% if not book.public_domain and book.permission_phrasing %}
-    <footer>
+    <div class="attribution">
         <p>{{ book.permission_phrasing }}</p>
-    </footer>
+    </div>
     {% endif %}
 
     {% if not book.public_domain and book.copyright_notice %}
-    <footer>
+    <div class="attribution">
         <p>{{ book.copyright_notice }}</p>
-    </footer>
+    </div>
     {% endif %}
     {% endif %}
-
-    <footer>
-        <p><a href="https://fragforce.org">fragforce.org</a></p>
-    </footer>
-</body>
-</html>
+</div>
+{% endblock %}

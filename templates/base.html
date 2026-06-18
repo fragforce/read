@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <link href="https://fonts.googleapis.com/css?family=Oswald|Roboto:300,400,500" rel="stylesheet">
+    <title>{% block title %}Fragforce Reads{% endblock %}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #253137;
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            line-height: 1.6;
+        }
+
+        h1, h2, h3 {
+            font-family: 'Oswald', sans-serif;
+            color: #46a4e8;
+        }
+
+        h2 {
+            border-bottom: 2px solid #46a4e8;
+            padding-bottom: 4px;
+            margin-bottom: 1rem;
+        }
+
+        a, a:visited {
+            color: #46a4e8;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        header {
+            background-color: #37474f;
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        header a {
+            color: #ffffff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+            color: #ffffff;
+        }
+
+        main {
+            flex: 1;
+            padding: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        footer {
+            padding: 1rem 2rem;
+            text-align: center;
+            font-size: 0.75rem;
+            color: #aaa;
+        }
+
+        .card {
+            background-color: #253137;
+            border: none;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        {% block extra_css %}{% endblock %}
+    </style>
+</head>
+<body>
+    <header>
+        <a href="/">
+            <h1>Fragforce Reads</h1>
+        </a>
+    </header>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <p>&copy; Fragforce Elder Council | <a href="https://fragforce.org">fragforce.org</a></p>
+    </footer>
+</body>
+</html>
