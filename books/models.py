@@ -1,12 +1,31 @@
+import secrets
 import uuid
 from django.db import models
+
+# Lowercase alphanumeric minus easily confused characters: 0/O, 1/I/l
+BOOK_ID_ALPHABET = "23456789abcdefghjkmnpqrstuvwxyz"
+
+
+def generate_book_id():
+    return "".join(secrets.choice(BOOK_ID_ALPHABET) for _ in range(12))
 
 
 class Book(models.Model):
     id = models.CharField(max_length=12, primary_key=True)
-    slug = models.SlugField(unique=True)
     title = models.CharField(max_length=255)
+    slug = models.SlugField(unique=True)
     author = models.CharField(max_length=255)
+
+    def save(self, *args, **kwargs):
+        if not self.id:
+            for _ in range(100):
+                candidate = generate_book_id()
+                if not Book.objects.filter(id=candidate).exists():
+                    self.id = candidate
+                    break
+            else:
+                raise RuntimeError("Failed to generate unique book ID after 100 attempts")
+        super().save(*args, **kwargs)
     illustrator = models.CharField(max_length=255, blank=True)
     publisher = models.CharField(max_length=255, blank=True)
     isbn = models.CharField(max_length=13, blank=True)

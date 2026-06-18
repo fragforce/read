@@ -12,6 +12,19 @@ class BookAdmin(admin.ModelAdmin):
     list_filter = ("public_domain",)
     search_fields = ("title", "author")
     prepopulated_fields = {"slug": ("title",)}
+    readonly_fields = ("id",)
+
+    def get_exclude(self, request, obj=None):
+        if obj is None:
+            return ("id",)
+        return ()
+
+    def get_fields(self, request, obj=None):
+        if obj is None:
+            fields = [f.name for f in self.model._meta.fields if f.name != "id"]
+        else:
+            fields = ["id"] + [f.name for f in self.model._meta.fields if f.name != "id"]
+        return fields
 
 
 @admin.register(Narrator)
