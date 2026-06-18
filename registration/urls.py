@@ -6,6 +6,7 @@ app_name = "registration"
 urlpatterns = [
     path("event/", views.register_event, name="event"),
     path("invite/<str:token>/", views.register_invite, name="invite"),
+    path("logout/", views.logout, name="logout"),
     path("welcome/", views.welcome, name="welcome"),
 ]
 

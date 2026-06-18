@@ -76,6 +76,11 @@ def login_with_passphrase(request, passphrase):
     return redirect("registration:welcome")
 
 
+def logout(request):
+    request.session.pop("narrator_id", None)
+    return redirect("home")
+
+
 def welcome(request):
     narrator_id = request.session.get("narrator_id")
     if not narrator_id:
