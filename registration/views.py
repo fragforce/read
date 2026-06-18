@@ -66,6 +66,14 @@ def login(request):
     return render(request, "registration/login.html", {"error": error})
 
 
+def login_with_passphrase(request, passphrase):
+    narrator = Narrator.objects.filter(passphrase=passphrase.lower()).first()
+    if not narrator:
+        return render(request, "registration/login.html", {"error": "Invalid passphrase."})
+    request.session["narrator_id"] = str(narrator.id)
+    return redirect("registration:welcome")
+
+
 def welcome(request):
     narrator_id = request.session.get("narrator_id")
     if not narrator_id:
