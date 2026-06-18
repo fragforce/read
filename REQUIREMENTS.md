@@ -37,8 +37,8 @@ These additional requirements apply only to books where publisher permission has
 | Requirement | Details |
 |-------------|---------|
 | Password gate | Unique password per QR code, server-side validation, short alphanumeric (4-6 chars, no ambiguous characters) |
-| Stream-only delivery | HLS or Media Source Extensions - no direct `<audio src>` links |
-| No download | `Content-Disposition: inline`, right-click save disabled, audio served in chunks |
+| Signed URL delivery | Audio served through session-gated Django view, no direct file URLs exposed |
+| No download | `Content-Disposition: inline`, URLs require valid session |
 | No public indexing | `<meta name="robots" content="noindex">` and `X-Robots-Tag: noindex` header (legal requirement) |
 | Publisher attribution (spoken) | Narrator states author, illustrator, AND publisher at beginning and end |
 | Publisher attribution (written) | Publisher name/logo prominently displayed on playback page |
@@ -157,26 +157,26 @@ These additional requirements apply only to books where publisher permission has
 | Deployment | CI/CD builds container images, manual promote to prod |
 | Storage | Local/object storage on existing servers (~1 GB capacity needed) |
 | Transcoding | Server-side WAV to MP3 (128kbps mono) |
-| HLS segmentation | Server-side MP3 to HLS segments (licensed titles only) |
+| Audio storage | Single storage location for all recordings; access control at view layer |
 
 ## Decided
 
 1. **Tech stack** - Django (Python), consistent with fragforce.org
 2. **Deployment** - Docker containers, same pattern as other Fragforce services
+3. **Licensed audio delivery** - Signed/expiring URLs via session-gated Django view. Prevents casual download and link sharing without the complexity of HLS/DRM.
+4. **Audio storage** - All recordings (public domain and licensed) stored in the same location. Access control handled at the view layer, not the storage layer.
 
 ## Open Decisions
 
 1. **Admin auth** - Discord OAuth, shared password, or existing Fragforce auth?
-2. **Hotlinking mitigation** - Cloudflare hotlink protection, referrer blocking, rate limiting, signed URLs?
-3. **HLS vs MSE** - HLS has broader native support; MSE gives more control but needs JS
+2. **Hotlinking mitigation** - Cloudflare hotlink protection, referrer blocking, rate limiting?
 
 ## Effort Estimate
 
 | Component | Days |
 |-----------|------|
 | Playback page (public domain - simple audio player) | 1-2 |
-| Playback page (licensed - password gate + streaming) | 2-3 |
-| HLS/MSE streaming setup (licensed titles only) | 2-3 |
+| Playback page (licensed - password gate + signed URL delivery) | 2-3 |
 | URL routing + narrator selection | 1 |
 | Password generation + validation (licensed) | 1 |
 | Narrator portal (recording, text display, attestation) | 5-7 |
