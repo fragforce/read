@@ -21,7 +21,9 @@ def register_event(request):
             error = "Name and email are required."
         else:
             passphrase = generate_passphrase()
-            narrator = Narrator.objects.create(name=name, email=email, passphrase=passphrase)
+            narrator = Narrator.objects.create(
+                name=name, email=email, passphrase=passphrase, registered_via_event=event_code
+            )
             request.session["narrator_id"] = str(narrator.id)
             return redirect("registration:welcome")
 

@@ -27,6 +27,9 @@ class Narrator(models.Model):
     name = models.CharField(max_length=255)
     email = models.EmailField()
     passphrase = models.CharField(max_length=200, unique=True, null=True, blank=True)
+    registered_via_event = models.ForeignKey(
+        "registration.EventCode", on_delete=models.SET_NULL, null=True, blank=True, related_name="narrators"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
