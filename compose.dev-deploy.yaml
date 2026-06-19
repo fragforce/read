@@ -1,0 +1,56 @@
+networks:
+  fragforce-dev:
+    external: true
+
+services:
+  db-read-dev:
+    image: postgres:18.3
+    container_name: read-dev-db
+    restart: unless-stopped
+    networks: [fragforce-dev]
+    env_file: /var/opt/docker/stacks/fragforce-reads-dev/.env
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  migrate-read-dev:
+    image: ghcr.io/fragforce/fragforce-read-dev:${IMAGE_TAG:-dev}
+    container_name: read-dev-migrate
+    command: uv run python manage.py migrate
+    networks: [fragforce-dev]
+    env_file: /var/opt/docker/stacks/fragforce-reads-dev/.env
+    depends_on:
+      db-read-dev:
+        condition: service_healthy
+    restart: "no"
+
+  web-read-dev:
+    image: ghcr.io/fragforce/fragforce-read-dev:${IMAGE_TAG:-dev}
+    container_name: read-dev-web
+    restart: unless-stopped
+    networks: [fragforce-dev]
+    env_file: /var/opt/docker/stacks/fragforce-reads-dev/.env
+    ports:
+      - "8002:8000"
+    environment:
+      DJANGO_LOG_LEVEL: "DEBUG"
+    command: ["gunicorn", "--log-level", "debug", "--bind=0.0.0.0:8000", "--forwarded-allow-ips", "*", "--proxy-allow-from", "*", "config.wsgi"]
+    volumes:
+      - media_data:/app/media
+    depends_on:
+      migrate-read-dev:
+        condition: service_completed_successfully
+      db-read-dev:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  media_data:
