@@ -1,0 +1,293 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: #253137;
+    color: #ffffff;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    line-height: 1.6;
+}
+
+h1, h2, h3 {
+    font-family: 'Oswald', sans-serif;
+    color: #46a4e8;
+}
+
+h2 {
+    border-bottom: 2px solid #46a4e8;
+    padding-bottom: 4px;
+    margin-bottom: 1rem;
+}
+
+a, a:visited {
+    color: #46a4e8;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Layout */
+
+header {
+    background-color: #37474f;
+    padding: 1rem 2rem;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+header nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+header a {
+    color: #ffffff;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+header h1 {
+    font-size: 1.5rem;
+    color: #ffffff;
+}
+
+.nav-icon {
+    color: #46a4e8;
+}
+
+.nav-icon:hover {
+    color: #5bb5f5;
+}
+
+main {
+    flex: 1;
+    padding: 2rem;
+    max-width: 800px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+footer {
+    padding: 1rem 2rem;
+    text-align: center;
+    font-size: 0.75rem;
+    color: #aaa;
+}
+
+/* Components */
+
+.card {
+    background-color: #253137;
+    border: none;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.btn {
+    display: inline-block;
+    padding: 0.6rem 1.5rem;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-weight: 500;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    border: none;
+}
+
+.btn:hover {
+    text-decoration: none;
+}
+
+.btn-primary {
+    background: #46a4e8;
+    color: #fff;
+}
+
+.btn-primary:hover {
+    background: #5bb5f5;
+    color: #fff;
+}
+
+.error {
+    color: #ff6b6b;
+    margin-top: 1rem;
+}
+
+/* Forms */
+
+label {
+    display: block;
+    margin-top: 1rem;
+    margin-bottom: 0.25rem;
+    font-weight: 500;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+    width: 100%;
+    max-width: 400px;
+    padding: 0.5rem;
+    font-size: 1rem;
+    border: 1px solid #46a4e8;
+    border-radius: 4px;
+    background: #37474f;
+    color: #fff;
+}
+
+
+.form-actions {
+    margin-top: 1.5rem;
+}
+
+/* Passphrase box (welcome page) */
+
+.passphrase-box {
+    background: #37474f;
+    border: 1px solid #46a4e8;
+    border-radius: 4px;
+    padding: 1rem;
+    margin: 1rem 0;
+    font-family: monospace;
+    font-size: 1.1rem;
+    word-break: break-word;
+}
+
+.text-muted {
+    font-size: 0.875rem;
+    color: #aaa;
+}
+
+.mt-1 {
+    margin-top: 1.5rem;
+}
+
+ol, ul {
+    padding-left: 1.5rem;
+    margin-top: 0.5rem;
+}
+
+/* Playback page */
+
+.book-info {
+    margin-bottom: 1.5rem;
+}
+
+.book-info p {
+    margin: 0.25rem 0;
+}
+
+.password-form input {
+    margin-right: 0.5rem;
+}
+
+audio {
+    width: 100%;
+    margin-top: 1rem;
+}
+
+.narrator {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+    color: #46a4e8;
+}
+
+.attribution {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #37474f;
+    font-size: 0.85rem;
+    color: #aaa;
+}
+
+/* Dashboard */
+
+.dashboard-greeting {
+    margin-bottom: 2rem;
+}
+
+.book-list {
+    list-style: none;
+    padding: 0;
+}
+
+.book-item {
+    background: #37474f;
+    border-radius: 4px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.book-item .book-info {
+    flex: 1;
+    min-width: 0;
+    margin-bottom: 0;
+}
+
+.book-title {
+    font-family: 'Oswald', sans-serif;
+    font-size: 1.1rem;
+    color: #ffffff;
+}
+
+.book-meta {
+    font-size: 0.85rem;
+    color: #aaa;
+    margin-top: 0.25rem;
+}
+
+.book-badge {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 3px;
+    white-space: nowrap;
+}
+
+.badge-public {
+    background: #2e7d32;
+    color: #fff;
+}
+
+.badge-licensed {
+    background: #5c2751;
+    color: #fff;
+}
+
+.recording-status {
+    font-size: 0.8rem;
+    color: #aaa;
+}
+
+.empty-state {
+    color: #aaa;
+    font-style: italic;
+    padding: 1rem 0;
+}
+
+.section {
+    margin-bottom: 2.5rem;
+}
