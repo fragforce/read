@@ -42,7 +42,7 @@
                     <span class="book-badge {% if item.book.public_domain %}badge-public{% else %}badge-licensed{% endif %}">
                         {% if item.book.public_domain %}Public Domain{% else %}Licensed{% endif %}
                     </span>
-                    {% if item.book.max_narrators %}
+                    {% if item.book.max_narrators != None %}
                     &middot; {{ item.recording_count }}/{{ item.book.max_narrators }} recordings
                     {% else %}
                     &middot; {{ item.recording_count }} recording{{ item.recording_count|pluralize }}
