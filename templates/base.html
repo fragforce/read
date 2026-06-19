@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,110 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex">
     <link href="https://fonts.googleapis.com/css?family=Oswald|Roboto:300,400,500" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <title>{% block title %}Fragforce Reads{% endblock %}</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #253137;
-            color: #ffffff;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            line-height: 1.6;
-        }
-
-        h1, h2, h3 {
-            font-family: 'Oswald', sans-serif;
-            color: #46a4e8;
-        }
-
-        h2 {
-            border-bottom: 2px solid #46a4e8;
-            padding-bottom: 4px;
-            margin-bottom: 1rem;
-        }
-
-        a, a:visited {
-            color: #46a4e8;
-            text-decoration: none;
-        }
-
-        a:hover {
-            text-decoration: underline;
-        }
-
-        header {
-            background-color: #37474f;
-            padding: 1rem 2rem;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-
-        header nav {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 1rem;
-        }
-
-        .nav-links {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        header a {
-            color: #ffffff;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        header h1 {
-            font-size: 1.5rem;
-            color: #ffffff;
-        }
-
-        .nav-icon {
-            color: #46a4e8;
-        }
-
-        .nav-icon:hover {
-            color: #5bb5f5;
-        }
-
-        main {
-            flex: 1;
-            padding: 2rem;
-            max-width: 800px;
-            margin: 0 auto;
-            width: 100%;
-        }
-
-        footer {
-            padding: 1rem 2rem;
-            text-align: center;
-            font-size: 0.75rem;
-            color: #aaa;
-        }
-
-        .card {
-            background-color: #253137;
-            border: none;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        {% block extra_css %}{% endblock %}
-    </style>
 </head>
 <body>
     <header>
@@ -118,6 +17,7 @@
             </a>
             <div class="nav-links">
                 {% if narrator_name %}
+                <a href="{% url 'portal:dashboard' %}">Portal</a>
                 <a href="{% url 'registration:logout' %}">Log out</a>
                 {% endif %}
                 <a href="https://github.com/fragforce/read" rel="noopener noreferrer" target="_blank" class="nav-icon" aria-label="GitHub">

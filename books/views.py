@@ -1,7 +1,7 @@
 from django.http import Http404
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404
 
-from .models import Book, Recording
+from .models import Book, Narrator, Recording
 
 
 def playback(request, book_id, recording_id=None):
@@ -35,4 +35,44 @@ def playback(request, book_id, recording_id=None):
         "recording": recording,
         "password_required": password_required,
         "password_valid": password_valid,
+    })
+
+
+def narrator_required(view_func):
+    def wrapper(request, *args, **kwargs):
+        narrator_id = request.session.get("narrator_id")
+        if not narrator_id:
+            return redirect("login:login")
+        narrator = Narrator.objects.filter(id=narrator_id).first()
+        if not narrator:
+            request.session.pop("narrator_id", None)
+            return redirect("login:login")
+        request.narrator = narrator
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
+
+@narrator_required
+def dashboard(request):
+    narrator = request.narrator
+    my_recordings = Recording.objects.filter(narrator=narrator).select_related("book")
+
+    recorded_book_ids = set(my_recordings.values_list("book_id", flat=True))
+
+    available_books = Book.objects.exclude(id__in=recorded_book_ids)
+
+    books_with_availability = []
+    for book in available_books:
+        recording_count = book.recordings.count()
+        if book.max_narrators is not None and recording_count >= book.max_narrators:
+            continue
+        books_with_availability.append({
+            "book": book,
+            "recording_count": recording_count,
+        })
+
+    return render(request, "books/dashboard.html", {
+        "narrator": narrator,
+        "my_recordings": my_recordings,
+        "available_books": books_with_availability,
     })
