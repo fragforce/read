@@ -64,7 +64,7 @@ def dashboard(request):
     books_with_availability = []
     for book in available_books:
         recording_count = book.recordings.count()
-        if book.max_narrators and recording_count >= book.max_narrators:
+        if book.max_narrators is not None and recording_count >= book.max_narrators:
             continue
         books_with_availability.append({
             "book": book,
