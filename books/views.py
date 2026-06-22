@@ -1,3 +1,4 @@
+from django.db.models import Count
 from django.http import Http404
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.http import require_GET, require_http_methods
@@ -62,16 +63,18 @@ def dashboard(request):
 
     recorded_book_ids = set(my_recordings.values_list("book_id", flat=True))
 
-    available_books = Book.objects.exclude(id__in=recorded_book_ids)
+    available_books = (
+        Book.objects.exclude(id__in=recorded_book_ids)
+        .annotate(recording_count=Count("recordings"))
+    )
 
     books_with_availability = []
     for book in available_books:
-        recording_count = book.recordings.count()
-        if book.max_narrators is not None and recording_count >= book.max_narrators:
+        if book.max_narrators is not None and book.recording_count >= book.max_narrators:
             continue
         books_with_availability.append({
             "book": book,
-            "recording_count": recording_count,
+            "recording_count": book.recording_count,
         })
 
     return render(request, "books/dashboard.html", {
