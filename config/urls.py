@@ -1,5 +1,7 @@
 import ipaddress
 
+from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.db import connection
 from django.http import Http404, JsonResponse
@@ -37,3 +39,6 @@ urlpatterns = [
     path("login/", include((login_urlpatterns, "login"))),
     path("register/", include("registration.urls")),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
