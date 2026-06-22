@@ -216,6 +216,10 @@ ol, ul {
     font-size: 1rem;
 }
 
+.checklist-item--missed {
+    border: 1px solid #ff6b6b;
+}
+
 /* Playback page */
 
 .book-info {

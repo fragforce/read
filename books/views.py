@@ -94,17 +94,21 @@ def preflight(request, book_id):
             {"key": "physical_book", "label": "I have the physical book ready to read from"}
         )
 
+    error = None
     if request.method == "POST":
-        all_checked = all(request.POST.get(item["key"]) for item in checklist_items)
+        for item in checklist_items:
+            item["checked"] = bool(request.POST.get(item["key"]))
+
+        all_checked = all(item["checked"] for item in checklist_items)
         if all_checked:
             return redirect("portal:record", book_id=book.id)
 
-        for item in checklist_items:
-            item["checked"] = bool(request.POST.get(item["key"]))
+        error = "Please confirm all items before continuing."
 
     return render(request, "books/preflight.html", {
         "book": book,
         "checklist_items": checklist_items,
+        "error": error,
     })
 
 

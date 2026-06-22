@@ -7,10 +7,12 @@
     <h2>Pre-flight Checklist</h2>
     <p>Before you start recording <strong>{{ book.title }}</strong>, please confirm the following:</p>
 
+    {% if error %}<p class="error">{{ error }}</p>{% endif %}
+
     <form method="post" class="checklist">
         {% csrf_token %}
         {% for item in checklist_items %}
-        <label class="checklist-item">
+        <label class="checklist-item {% if error and not item.checked %}checklist-item--missed{% endif %}">
             <input type="checkbox" name="{{ item.key }}" value="1" {% if item.checked %}checked{% endif %}>
             <span>{{ item.label }}</span>
         </label>
