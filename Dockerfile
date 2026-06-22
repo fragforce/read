@@ -12,7 +12,7 @@ RUN uv sync --frozen --no-dev
 
 COPY . .
 
-RUN uv run python manage.py collectstatic --noinput
+RUN SECRET_KEY=build DATABASE_URL=sqlite:///dev/null uv run python manage.py collectstatic --noinput
 
 EXPOSE 8000
 
