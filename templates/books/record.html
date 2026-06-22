@@ -121,6 +121,7 @@
             startMeter(audioInputs[0].deviceId);
         } catch (err) {
             micSelect.innerHTML = '<option value="">Microphone access denied</option>';
+            startBtn.disabled = true;
         }
     }
 
@@ -192,6 +193,7 @@
     });
 
     startBtn.addEventListener('click', function() {
+        if (startBtn.disabled) return;
         stopMeter();
         // Recording UI will be implemented in issue #4
         alert('Recording not yet implemented. Coming soon!');
