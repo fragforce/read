@@ -16,28 +16,29 @@ body {
 
 h1, h2, h3 {
     font-family: 'Oswald', sans-serif;
-    color: #46a4e8;
+    color: #4e738b;
 }
 
 h2 {
-    border-bottom: 2px solid #46a4e8;
+    border-bottom: 2px solid #4e738b;
     padding-bottom: 4px;
     margin-bottom: 1rem;
 }
 
 a, a:visited {
-    color: #46a4e8;
+    color: #4e738b;
     text-decoration: none;
 }
 
 a:hover {
+    color: #f09b00;
     text-decoration: underline;
 }
 
 /* Layout */
 
 header {
-    background-color: #37474f;
+    background-color: #5c2751;
     padding: 1rem 2rem;
     position: sticky;
     top: 0;
@@ -71,11 +72,11 @@ header h1 {
 }
 
 .nav-icon {
-    color: #46a4e8;
+    color: #4e738b;
 }
 
 .nav-icon:hover {
-    color: #5bb5f5;
+    color: #f09b00;
 }
 
 main {
@@ -119,17 +120,17 @@ footer {
 }
 
 .btn-primary {
-    background: #46a4e8;
+    background: #5c2751;
     color: #fff;
 }
 
 .btn-primary:hover {
-    background: #5bb5f5;
+    background: #f09b00;
     color: #fff;
 }
 
 .error {
-    color: #ff6b6b;
+    color: #f09b00;
     margin-top: 1rem;
 }
 
@@ -149,7 +150,7 @@ input[type="password"] {
     max-width: 400px;
     padding: 0.5rem;
     font-size: 1rem;
-    border: 1px solid #46a4e8;
+    border: 1px solid #4e738b;
     border-radius: 4px;
     background: #37474f;
     color: #fff;
@@ -164,7 +165,7 @@ input[type="password"] {
 
 .passphrase-box {
     background: #37474f;
-    border: 1px solid #46a4e8;
+    border: 1px solid #4e738b;
     border-radius: 4px;
     padding: 1rem;
     margin: 1rem 0;
@@ -208,7 +209,7 @@ ol, ul {
 .checklist-item input[type="checkbox"] {
     width: 1.25rem;
     height: 1.25rem;
-    accent-color: #46a4e8;
+    accent-color: #4e738b;
     flex-shrink: 0;
 }
 
@@ -217,7 +218,7 @@ ol, ul {
 }
 
 .checklist-item--missed {
-    border: 1px solid #ff6b6b;
+    border: 1px solid #f09b00;
 }
 
 /* Playback page */
@@ -242,7 +243,7 @@ audio {
 .narrator {
     font-size: 1.1rem;
     margin-bottom: 0.5rem;
-    color: #46a4e8;
+    color: #4e738b;
 }
 
 .attribution {
@@ -301,7 +302,7 @@ audio {
 }
 
 .badge-public {
-    background: #2e7d32;
+    background: #4e738b;
     color: #fff;
 }
 
