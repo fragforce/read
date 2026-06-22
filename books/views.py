@@ -123,4 +123,4 @@ def preflight(request, book_id):
 @narrator_required
 def record(request, book_id):
     book = get_object_or_404(Book, id=book_id)
-    return render(request, "books/record.html", {"book": book})
+    return render(request, "books/record.html", {"book": book, "narrator": request.narrator})

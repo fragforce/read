@@ -5,10 +5,201 @@
 {% block content %}
 <div class="card">
     <h2>Record: {{ book.title }}</h2>
-    <p>Recording interface coming soon.</p>
+    <p class="book-meta">by {{ book.author }}{% if book.estimated_duration %} &middot; ~{{ book.estimated_duration }}{% endif %}</p>
 
-    <p class="mt-1 text-muted">
-        <a href="{% url 'portal:preflight' book_id=book.id %}">&larr; Back to pre-flight</a>
-    </p>
+    <div class="section">
+        <h3>Microphone Setup</h3>
+        <div class="mic-setup">
+            <label for="mic-select">Input device</label>
+            <select id="mic-select" class="form-select">
+                <option value="">Loading devices...</option>
+            </select>
+
+            <div class="vu-meter-container">
+                <label>Level check</label>
+                <div class="vu-meter">
+                    <div class="vu-meter-bar" id="vu-bar"></div>
+                </div>
+                <p class="text-muted">Speak normally to verify your mic is working.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>Attribution Script</h3>
+        <div class="script-box">
+            <p class="script-label">Opening (read this aloud before the book):</p>
+            <blockquote class="script-text" id="opening-script"></blockquote>
+        </div>
+        <div class="script-box">
+            <p class="script-label">Closing (read this aloud after the book):</p>
+            <blockquote class="script-text" id="closing-script"></blockquote>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>Book Content</h3>
+        {% if book.public_domain and book.full_text %}
+        <div class="book-text-container">
+            <div class="book-text">{{ book.full_text|linebreaksbr }}</div>
+        </div>
+        {% else %}
+        <div class="physical-book-notice">
+            <p>This is a licensed title. Please read from your physical copy of the book.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="form-actions">
+        <button id="start-recording" class="btn btn-primary" disabled>Start Recording</button>
+        <a href="{% url 'portal:preflight' book_id=book.id %}" class="btn">&larr; Back to pre-flight</a>
+    </div>
 </div>
+
+<script>
+(function() {
+    const micSelect = document.getElementById('mic-select');
+    const vuBar = document.getElementById('vu-bar');
+    const startBtn = document.getElementById('start-recording');
+    const openingScript = document.getElementById('opening-script');
+    const closingScript = document.getElementById('closing-script');
+
+    const bookTitle = "{{ book.title|escapejs }}";
+    const bookAuthor = "{{ book.author|escapejs }}";
+    const narratorName = "{{ narrator.name|escapejs }}";
+    const isPublicDomain = {{ book.public_domain|yesno:"true,false" }};
+    const copyrightNotice = "{{ book.copyright_notice|escapejs }}";
+    const permissionPhrasing = "{{ book.permission_phrasing|escapejs }}";
+
+    function buildOpeningScript() {
+        let script = `This is a reading of "${bookTitle}" by ${bookAuthor}, `;
+        script += `read by ${narratorName} for Fragforce Reads.`;
+        if (!isPublicDomain && permissionPhrasing) {
+            script += ` ${permissionPhrasing}`;
+        }
+        return script;
+    }
+
+    function buildClosingScript() {
+        let script = `This has been a reading of "${bookTitle}" by ${bookAuthor}, `;
+        script += `read by ${narratorName} for Fragforce Reads.`;
+        if (!isPublicDomain && copyrightNotice) {
+            script += ` ${copyrightNotice}`;
+        } else if (isPublicDomain) {
+            script += ' This work is in the public domain.';
+        }
+        return script;
+    }
+
+    openingScript.textContent = buildOpeningScript();
+    closingScript.textContent = buildClosingScript();
+
+    let audioContext = null;
+    let analyser = null;
+    let stream = null;
+    let animationId = null;
+
+    async function enumerateDevices() {
+        try {
+            await navigator.mediaDevices.getUserMedia({ audio: true });
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const audioInputs = devices.filter(d => d.kind === 'audioinput');
+
+            micSelect.innerHTML = '';
+            if (audioInputs.length === 0) {
+                micSelect.innerHTML = '<option value="">No microphones found</option>';
+                return;
+            }
+
+            audioInputs.forEach((device, i) => {
+                const option = document.createElement('option');
+                option.value = device.deviceId;
+                option.textContent = device.label || `Microphone ${i + 1}`;
+                micSelect.appendChild(option);
+            });
+
+            startMeter(audioInputs[0].deviceId);
+        } catch (err) {
+            micSelect.innerHTML = '<option value="">Microphone access denied</option>';
+            startBtn.disabled = true;
+        }
+    }
+
+    async function startMeter(deviceId) {
+        stopMeter();
+
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({
+                audio: { deviceId: deviceId ? { exact: deviceId } : undefined }
+            });
+
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const source = audioContext.createMediaStreamSource(stream);
+            analyser = audioContext.createAnalyser();
+            analyser.fftSize = 256;
+            source.connect(analyser);
+
+            startBtn.disabled = false;
+            updateMeter();
+        } catch (err) {
+            vuBar.style.width = '0%';
+            startBtn.disabled = true;
+        }
+    }
+
+    function updateMeter() {
+        if (!analyser) return;
+
+        const data = new Uint8Array(analyser.frequencyBinCount);
+        analyser.getByteFrequencyData(data);
+
+        let sum = 0;
+        for (let i = 0; i < data.length; i++) {
+            sum += data[i];
+        }
+        const average = sum / data.length;
+        const level = Math.min(100, (average / 128) * 100);
+
+        vuBar.style.width = level + '%';
+
+        if (level > 60) {
+            vuBar.classList.add('vu-hot');
+        } else {
+            vuBar.classList.remove('vu-hot');
+        }
+
+        animationId = requestAnimationFrame(updateMeter);
+    }
+
+    function stopMeter() {
+        if (animationId) {
+            cancelAnimationFrame(animationId);
+            animationId = null;
+        }
+        if (audioContext) {
+            audioContext.close();
+            audioContext = null;
+        }
+        if (stream) {
+            stream.getTracks().forEach(t => t.stop());
+            stream = null;
+        }
+    }
+
+    micSelect.addEventListener('change', function() {
+        if (this.value) {
+            startMeter(this.value);
+        }
+    });
+
+    startBtn.addEventListener('click', function() {
+        if (startBtn.disabled) return;
+        stopMeter();
+        // Recording UI will be implemented in issue #4
+        alert('Recording not yet implemented. Coming soon!');
+    });
+
+    enumerateDevices();
+})();
+</script>
 {% endblock %}

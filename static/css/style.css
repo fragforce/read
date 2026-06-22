@@ -335,3 +335,82 @@ audio {
 .section {
     margin-bottom: 2.5rem;
 }
+
+/* Recording preparation */
+
+.form-select {
+    width: 100%;
+    max-width: 400px;
+    padding: 0.5rem;
+    font-size: 1rem;
+    border: 1px solid var(--color-fragforce-blue);
+    border-radius: 4px;
+    background: var(--color-surface);
+    color: var(--color-text);
+}
+
+.mic-setup {
+    margin-top: 0.5rem;
+}
+
+.vu-meter-container {
+    margin-top: 1rem;
+}
+
+.vu-meter {
+    height: 1rem;
+    background: var(--color-surface);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 0.25rem;
+    border: 1px solid var(--color-fragforce-blue);
+}
+
+.vu-meter-bar {
+    height: 100%;
+    width: 0%;
+    background: var(--color-fragforce-purple);
+    transition: width 0.05s linear;
+}
+
+.vu-meter-bar.vu-hot {
+    background: var(--color-fragforce-gold);
+}
+
+.script-box {
+    background: var(--color-surface);
+    border-radius: 4px;
+    padding: 1rem;
+    margin-top: 0.75rem;
+}
+
+.script-label {
+    font-size: 0.85rem;
+    color: var(--color-muted);
+    margin-bottom: 0.5rem;
+}
+
+.script-text {
+    font-style: italic;
+    line-height: 1.8;
+    border-left: 3px solid var(--color-fragforce-purple);
+    padding-left: 1rem;
+}
+
+.book-text-container {
+    max-height: 400px;
+    overflow-y: auto;
+    background: var(--color-surface);
+    border-radius: 4px;
+    padding: 1.5rem;
+    margin-top: 0.5rem;
+    line-height: 1.8;
+}
+
+.physical-book-notice {
+    background: var(--color-surface);
+    border-radius: 4px;
+    padding: 1rem;
+    margin-top: 0.5rem;
+    border-left: 3px solid var(--color-fragforce-gold);
+}
