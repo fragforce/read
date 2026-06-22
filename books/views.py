@@ -76,3 +76,43 @@ def dashboard(request):
         "my_recordings": my_recordings,
         "available_books": books_with_availability,
     })
+
+
+@narrator_required
+def preflight(request, book_id):
+    book = get_object_or_404(Book, id=book_id)
+
+    checklist_items = [
+        {"key": "quiet_room", "label": "I'm in a quiet room with minimal background noise"},
+        {"key": "mic_connected", "label": "My microphone is connected and working"},
+        {"key": "water", "label": "I have water nearby"},
+        {"key": "phone_silenced", "label": "My phone is silenced"},
+    ]
+
+    if not book.public_domain or not book.full_text:
+        checklist_items.append(
+            {"key": "physical_book", "label": "I have the physical book ready to read from"}
+        )
+
+    error = None
+    if request.method == "POST":
+        for item in checklist_items:
+            item["checked"] = bool(request.POST.get(item["key"]))
+
+        all_checked = all(item["checked"] for item in checklist_items)
+        if all_checked:
+            return redirect("portal:record", book_id=book.id)
+
+        error = "Please confirm all items before continuing."
+
+    return render(request, "books/preflight.html", {
+        "book": book,
+        "checklist_items": checklist_items,
+        "error": error,
+    })
+
+
+@narrator_required
+def record(request, book_id):
+    book = get_object_or_404(Book, id=book_id)
+    return render(request, "books/record.html", {"book": book})
