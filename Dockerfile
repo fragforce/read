@@ -2,6 +2,7 @@ FROM python:3.13-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
+ENV UV_NO_CACHE=1
 
 RUN addgroup --system app && adduser --system --ingroup app app
 
