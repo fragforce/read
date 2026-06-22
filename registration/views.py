@@ -1,11 +1,13 @@
 from django.shortcuts import render, redirect
 from django.http import Http404
+from django.views.decorators.http import require_http_methods, require_GET
 
 from books.models import Narrator
 from .models import EventCode, InviteLink
 from .wordlist import generate_passphrase
 
 
+@require_http_methods(["GET", "POST"])
 def register_event(request):
     error = None
 
@@ -30,6 +32,7 @@ def register_event(request):
     return render(request, "registration/event.html", {"error": error})
 
 
+@require_http_methods(["GET", "POST"])
 def register_invite(request, token):
     invite = InviteLink.objects.filter(token=token).first()
     if not invite or not invite.is_valid():
@@ -53,6 +56,7 @@ def register_invite(request, token):
     return render(request, "registration/invite.html", {"invite": invite, "error": error})
 
 
+@require_http_methods(["GET", "POST"])
 def login(request):
     error = None
 
@@ -68,6 +72,7 @@ def login(request):
     return render(request, "registration/login.html", {"error": error})
 
 
+@require_GET
 def login_with_passphrase(request, passphrase):
     narrator = Narrator.objects.filter(passphrase=passphrase.lower()).first()
     if not narrator:
@@ -76,11 +81,13 @@ def login_with_passphrase(request, passphrase):
     return redirect("registration:welcome")
 
 
+@require_GET
 def logout(request):
     request.session.pop("narrator_id", None)
     return redirect("home")
 
 
+@require_GET
 def welcome(request):
     narrator_id = request.session.get("narrator_id")
     if not narrator_id:

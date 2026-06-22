@@ -1,9 +1,11 @@
 from django.http import Http404
 from django.shortcuts import render, redirect, get_object_or_404
+from django.views.decorators.http import require_GET, require_http_methods
 
 from .models import Book, Narrator, Recording
 
 
+@require_http_methods(["GET", "POST"])
 def playback(request, book_id, recording_id=None):
     book = get_object_or_404(Book, id=book_id)
 
@@ -52,6 +54,7 @@ def narrator_required(view_func):
     return wrapper
 
 
+@require_GET
 @narrator_required
 def dashboard(request):
     narrator = request.narrator
@@ -78,6 +81,7 @@ def dashboard(request):
     })
 
 
+@require_http_methods(["GET", "POST"])
 @narrator_required
 def preflight(request, book_id):
     book = get_object_or_404(Book, id=book_id)
@@ -112,6 +116,7 @@ def preflight(request, book_id):
     })
 
 
+@require_GET
 @narrator_required
 def record(request, book_id):
     book = get_object_or_404(Book, id=book_id)

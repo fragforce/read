@@ -6,6 +6,7 @@ from django.contrib import admin
 from django.db import connection
 from django.http import Http404, JsonResponse
 from django.urls import path, include
+from django.views.decorators.http import require_GET
 from django.views.generic import TemplateView
 
 from books.urls import portal_urlpatterns
@@ -19,6 +20,7 @@ PRIVATE_NETWORKS = (
 )
 
 
+@require_GET
 def healthz(request):
     ip = ipaddress.ip_address(request.META["REMOTE_ADDR"])
     if not any(ip in net for net in PRIVATE_NETWORKS):
