@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Record - {{ book.title }} - Fragforce Reads{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Record: {{ book.title }}</h2>
+    <p>Recording interface coming soon.</p>
+
+    <p class="mt-1 text-muted">
+        <a href="{% url 'portal:preflight' book_id=book.id %}">&larr; Back to pre-flight</a>
+    </p>
+</div>
+{% endblock %}

@@ -187,6 +187,35 @@ ol, ul {
     margin-top: 0.5rem;
 }
 
+/* Checklist */
+
+.checklist {
+    margin-top: 1.5rem;
+}
+
+.checklist-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+    background: #37474f;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: normal;
+}
+
+.checklist-item input[type="checkbox"] {
+    width: 1.25rem;
+    height: 1.25rem;
+    accent-color: #46a4e8;
+    flex-shrink: 0;
+}
+
+.checklist-item span {
+    font-size: 1rem;
+}
+
 /* Playback page */
 
 .book-info {

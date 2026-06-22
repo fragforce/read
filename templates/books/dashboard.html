@@ -49,7 +49,7 @@
                     {% endif %}
                 </div>
             </div>
-            <a href="{% url 'portal:dashboard' %}" class="btn btn-primary">Record</a>
+            <a href="{% url 'portal:preflight' book_id=item.book.id %}" class="btn btn-primary">Record</a>
         </li>
         {% endfor %}
     </ul>

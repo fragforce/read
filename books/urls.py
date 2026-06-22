@@ -10,4 +10,6 @@ urlpatterns = [
 
 portal_urlpatterns = [
     path("", views.dashboard, name="dashboard"),
+    path("preflight/<str:book_id>/", views.preflight, name="preflight"),
+    path("record/<str:book_id>/", views.record, name="record"),
 ]

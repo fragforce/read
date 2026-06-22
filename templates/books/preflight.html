@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Pre-flight - {{ book.title }} - Fragforce Reads{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Pre-flight Checklist</h2>
+    <p>Before you start recording <strong>{{ book.title }}</strong>, please confirm the following:</p>
+
+    <form method="post" class="checklist">
+        {% csrf_token %}
+        {% for item in checklist_items %}
+        <label class="checklist-item">
+            <input type="checkbox" name="{{ item.key }}" value="1" {% if item.checked %}checked{% endif %}>
+            <span>{{ item.label }}</span>
+        </label>
+        {% endfor %}
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Continue to Recording</button>
+        </div>
+    </form>
+
+    <p class="mt-1 text-muted">
+        <a href="{% url 'portal:dashboard' %}">&larr; Back to dashboard</a>
+    </p>
+</div>
+{% endblock %}
