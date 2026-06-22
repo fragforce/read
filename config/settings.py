@@ -60,6 +60,7 @@ WSGI_APPLICATION = "config.wsgi.application"
 DATABASES = {
     "default": env.db("DATABASE_URL"),
 }
+DATABASES["default"]["CONN_MAX_AGE"] = env.int("CONN_MAX_AGE", default=600)
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
