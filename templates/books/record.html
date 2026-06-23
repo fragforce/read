@@ -7,6 +7,14 @@
     <h2>Record: {{ book.title }}</h2>
     <p class="book-meta">by {{ book.author }}{% if book.estimated_duration %} &middot; ~{{ book.estimated_duration }}{% endif %}</p>
 
+    <noscript>
+        <div class="noscript-notice">
+            <h3>JavaScript Required</h3>
+            <p>Recording requires JavaScript to access your microphone and capture audio. Please enable JavaScript in your browser settings and reload this page.</p>
+            <p><a href="{% url 'portal:dashboard' %}">&larr; Back to Dashboard</a></p>
+        </div>
+    </noscript>
+
     <!-- Phase 1: Setup -->
     <div id="phase-setup">
         <div class="section">
