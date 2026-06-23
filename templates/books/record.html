@@ -7,52 +7,147 @@
     <h2>Record: {{ book.title }}</h2>
     <p class="book-meta">by {{ book.author }}{% if book.estimated_duration %} &middot; ~{{ book.estimated_duration }}{% endif %}</p>
 
-    <div class="section">
-        <h3>Microphone Setup</h3>
-        <div class="mic-setup">
-            <label for="mic-select">Input device</label>
-            <select id="mic-select" class="form-select">
-                <option value="">Loading devices...</option>
-            </select>
+    <!-- Phase 1: Setup -->
+    <div id="phase-setup">
+        <div class="section">
+            <h3>Microphone Setup</h3>
+            <div class="mic-setup">
+                <label for="mic-select">Input device</label>
+                <select id="mic-select" class="form-select">
+                    <option value="">Loading devices...</option>
+                </select>
 
-            <div class="vu-meter-container">
-                <label>Level check</label>
-                <div class="vu-meter">
-                    <div class="vu-meter-bar" id="vu-bar"></div>
+                <div class="vu-meter-container">
+                    <label>Level check</label>
+                    <div class="vu-meter">
+                        <div class="vu-meter-bar" id="vu-bar"></div>
+                    </div>
+                    <p class="text-muted">Speak normally to verify your mic is working.</p>
                 </div>
-                <p class="text-muted">Speak normally to verify your mic is working.</p>
             </div>
         </div>
+
+        <div class="section">
+            <h3>Attribution Script</h3>
+            <div class="script-box">
+                <p class="script-label">Opening (read this aloud before the book):</p>
+                <blockquote class="script-text" id="opening-script"></blockquote>
+            </div>
+            <div class="script-box">
+                <p class="script-label">Closing (read this aloud after the book):</p>
+                <blockquote class="script-text" id="closing-script"></blockquote>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>Book Content</h3>
+            {% if book.public_domain and book.full_text %}
+            <div class="book-text-container">
+                <div class="book-text">{{ book.full_text|linebreaksbr }}</div>
+            </div>
+            {% else %}
+            <div class="physical-book-notice">
+                <p>This is a licensed title. Please read from your physical copy of the book.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="form-actions">
+            <button id="start-recording" class="btn btn-primary" disabled>Start Recording</button>
+            <a href="{% url 'portal:preflight' book_id=book.id %}" class="btn">&larr; Back to pre-flight</a>
+        </div>
     </div>
 
-    <div class="section">
-        <h3>Attribution Script</h3>
-        <div class="script-box">
-            <p class="script-label">Opening (read this aloud before the book):</p>
-            <blockquote class="script-text" id="opening-script"></blockquote>
+    <!-- Phase 2: Recording -->
+    <div id="phase-recording" class="hidden">
+        <div class="recording-active">
+            <div class="recording-indicator">
+                <span class="rec-dot"></span>
+                <span id="rec-status-text">Recording</span>
+            </div>
+            <div class="recording-timer" id="rec-timer">0:00</div>
+            <div class="vu-meter-container">
+                <div class="vu-meter">
+                    <div class="vu-meter-bar" id="vu-bar-recording"></div>
+                </div>
+            </div>
         </div>
-        <div class="script-box">
-            <p class="script-label">Closing (read this aloud after the book):</p>
-            <blockquote class="script-text" id="closing-script"></blockquote>
-        </div>
-    </div>
 
-    <div class="section">
-        <h3>Book Content</h3>
+        <div class="section">
+            <h3>Attribution Script</h3>
+            <div class="script-box">
+                <p class="script-label">Opening:</p>
+                <blockquote class="script-text" id="opening-script-rec"></blockquote>
+            </div>
+            <div class="script-box">
+                <p class="script-label">Closing:</p>
+                <blockquote class="script-text" id="closing-script-rec"></blockquote>
+            </div>
+        </div>
+
         {% if book.public_domain and book.full_text %}
-        <div class="book-text-container">
-            <div class="book-text">{{ book.full_text|linebreaksbr }}</div>
-        </div>
-        {% else %}
-        <div class="physical-book-notice">
-            <p>This is a licensed title. Please read from your physical copy of the book.</p>
+        <div class="section">
+            <h3>Book Content</h3>
+            <div class="book-text-container">
+                <div class="book-text">{{ book.full_text|linebreaksbr }}</div>
+            </div>
         </div>
         {% endif %}
+
+        <div class="form-actions recording-controls">
+            <button id="pause-recording" class="btn btn-primary">Pause</button>
+            <button id="stop-recording" class="btn btn-danger">Stop Recording</button>
+        </div>
     </div>
 
-    <div class="form-actions">
-        <button id="start-recording" class="btn btn-primary" disabled>Start Recording</button>
-        <a href="{% url 'portal:preflight' book_id=book.id %}" class="btn">&larr; Back to pre-flight</a>
+    <!-- Phase 3: Review -->
+    <div id="phase-review" class="hidden">
+        <div class="section">
+            <h3>Review Your Recording</h3>
+            <p class="text-muted">Listen back to make sure you're happy with it.</p>
+            <audio id="review-audio" controls></audio>
+            <p class="recording-duration text-muted" id="review-duration"></p>
+        </div>
+
+        <div class="form-actions">
+            <button id="accept-recording" class="btn btn-primary">Accept &amp; Continue</button>
+            <button id="discard-recording" class="btn">Re-record</button>
+        </div>
+    </div>
+
+    <!-- Phase 4: Attestation -->
+    <div id="phase-attestation" class="hidden">
+        <div class="section">
+            <h3>Attestation</h3>
+            <p>Please confirm the following before submitting your recording:</p>
+
+            <div class="attestation-box">
+                <p id="attestation-text"></p>
+            </div>
+
+            <label class="checklist-item">
+                <input type="checkbox" id="attest-checkbox">
+                <span>I confirm the above statement is true.</span>
+            </label>
+        </div>
+
+        <div class="form-actions">
+            <button id="submit-recording" class="btn btn-primary" disabled>Submit Recording</button>
+            <button id="back-to-review" class="btn">&larr; Back to review</button>
+        </div>
+
+        <p class="error hidden" id="upload-error"></p>
+    </div>
+
+    <!-- Phase 5: Done -->
+    <div id="phase-done" class="hidden">
+        <div class="section">
+            <h3>Recording Submitted</h3>
+            <p>Your recording has been saved. Thank you for reading!</p>
+        </div>
+        <div class="form-actions">
+            <a href="{% url 'portal:dashboard' %}" class="btn btn-primary">Back to Dashboard</a>
+        </div>
     </div>
 </div>
 
@@ -60,9 +155,28 @@
 (function() {
     const micSelect = document.getElementById('mic-select');
     const vuBar = document.getElementById('vu-bar');
+    const vuBarRec = document.getElementById('vu-bar-recording');
     const startBtn = document.getElementById('start-recording');
-    const openingScript = document.getElementById('opening-script');
-    const closingScript = document.getElementById('closing-script');
+    const pauseBtn = document.getElementById('pause-recording');
+    const stopBtn = document.getElementById('stop-recording');
+    const acceptBtn = document.getElementById('accept-recording');
+    const discardBtn = document.getElementById('discard-recording');
+    const submitBtn = document.getElementById('submit-recording');
+    const backToReviewBtn = document.getElementById('back-to-review');
+    const attestCheckbox = document.getElementById('attest-checkbox');
+    const timerEl = document.getElementById('rec-timer');
+    const recStatusText = document.getElementById('rec-status-text');
+    const reviewAudio = document.getElementById('review-audio');
+    const reviewDuration = document.getElementById('review-duration');
+    const uploadError = document.getElementById('upload-error');
+
+    const phases = {
+        setup: document.getElementById('phase-setup'),
+        recording: document.getElementById('phase-recording'),
+        review: document.getElementById('phase-review'),
+        attestation: document.getElementById('phase-attestation'),
+        done: document.getElementById('phase-done'),
+    };
 
     const bookTitle = "{{ book.title|escapejs }}";
     const bookAuthor = "{{ book.author|escapejs }}";
@@ -70,6 +184,8 @@
     const isPublicDomain = {{ book.public_domain|yesno:"true,false" }};
     const copyrightNotice = "{{ book.copyright_notice|escapejs }}";
     const permissionPhrasing = "{{ book.permission_phrasing|escapejs }}";
+    const uploadUrl = "{% url 'portal:upload' book_id=book.id %}";
+    const csrfToken = "{{ csrf_token }}";
 
     function buildOpeningScript() {
         let script = `This is a reading of "${bookTitle}" by ${bookAuthor}, `;
@@ -91,13 +207,36 @@
         return script;
     }
 
-    openingScript.textContent = buildOpeningScript();
-    closingScript.textContent = buildClosingScript();
+    function buildAttestationText() {
+        if (isPublicDomain) {
+            return `I, ${narratorName}, attest that I have recorded a reading of "${bookTitle}" by ${bookAuthor} for Fragforce Reads. I understand this recording will be made available to children at partner hospitals.`;
+        }
+        return `I, ${narratorName}, attest that I have recorded a reading of "${bookTitle}" by ${bookAuthor} for Fragforce Reads. I understand this is a licensed work and my recording will only be distributed in accordance with the publisher's permissions. I have not copied or redistributed the text of this book.`;
+    }
 
+    document.getElementById('opening-script').textContent = buildOpeningScript();
+    document.getElementById('closing-script').textContent = buildClosingScript();
+    document.getElementById('opening-script-rec').textContent = buildOpeningScript();
+    document.getElementById('closing-script-rec').textContent = buildClosingScript();
+    document.getElementById('attestation-text').textContent = buildAttestationText();
+
+    function showPhase(name) {
+        Object.values(phases).forEach(el => el.classList.add('hidden'));
+        phases[name].classList.remove('hidden');
+    }
+
+    // Audio state
     let audioContext = null;
     let analyser = null;
-    let stream = null;
+    let micStream = null;
     let animationId = null;
+    let mediaRecorder = null;
+    let recordedChunks = [];
+    let recordingBlob = null;
+    let recordingDuration = 0;
+    let timerInterval = null;
+    let timerSeconds = 0;
+    let pausedDuration = 0;
 
     async function enumerateDevices() {
         try {
@@ -129,25 +268,25 @@
         stopMeter();
 
         try {
-            stream = await navigator.mediaDevices.getUserMedia({
+            micStream = await navigator.mediaDevices.getUserMedia({
                 audio: { deviceId: deviceId ? { exact: deviceId } : undefined }
             });
 
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            const source = audioContext.createMediaStreamSource(stream);
+            const source = audioContext.createMediaStreamSource(micStream);
             analyser = audioContext.createAnalyser();
             analyser.fftSize = 256;
             source.connect(analyser);
 
             startBtn.disabled = false;
-            updateMeter();
+            updateMeter(vuBar);
         } catch (err) {
             vuBar.style.width = '0%';
             startBtn.disabled = true;
         }
     }
 
-    function updateMeter() {
+    function updateMeter(targetBar) {
         if (!analyser) return;
 
         const data = new Uint8Array(analyser.frequencyBinCount);
@@ -160,15 +299,14 @@
         const average = sum / data.length;
         const level = Math.min(100, (average / 128) * 100);
 
-        vuBar.style.width = level + '%';
-
+        targetBar.style.width = level + '%';
         if (level > 60) {
-            vuBar.classList.add('vu-hot');
+            targetBar.classList.add('vu-hot');
         } else {
-            vuBar.classList.remove('vu-hot');
+            targetBar.classList.remove('vu-hot');
         }
 
-        animationId = requestAnimationFrame(updateMeter);
+        animationId = requestAnimationFrame(() => updateMeter(targetBar));
     }
 
     function stopMeter() {
@@ -179,11 +317,100 @@
         if (audioContext) {
             audioContext.close();
             audioContext = null;
+            analyser = null;
         }
-        if (stream) {
-            stream.getTracks().forEach(t => t.stop());
-            stream = null;
+        if (micStream) {
+            micStream.getTracks().forEach(t => t.stop());
+            micStream = null;
         }
+    }
+
+    function formatTime(seconds) {
+        const m = Math.floor(seconds / 60);
+        const s = seconds % 60;
+        return m + ':' + String(s).padStart(2, '0');
+    }
+
+    function startTimer() {
+        timerSeconds = 0;
+        timerEl.textContent = '0:00';
+        timerInterval = setInterval(() => {
+            timerSeconds++;
+            timerEl.textContent = formatTime(timerSeconds);
+        }, 1000);
+    }
+
+    function stopTimer() {
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+    }
+
+    function pauseTimer() {
+        stopTimer();
+    }
+
+    function resumeTimer() {
+        timerInterval = setInterval(() => {
+            timerSeconds++;
+            timerEl.textContent = formatTime(timerSeconds);
+        }, 1000);
+    }
+
+    // Recording controls
+
+    async function beginRecording() {
+        const deviceId = micSelect.value;
+        stopMeter();
+
+        try {
+            micStream = await navigator.mediaDevices.getUserMedia({
+                audio: { deviceId: deviceId ? { exact: deviceId } : undefined }
+            });
+        } catch (err) {
+            alert('Could not access microphone.');
+            return;
+        }
+
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const source = audioContext.createMediaStreamSource(micStream);
+        analyser = audioContext.createAnalyser();
+        analyser.fftSize = 256;
+        source.connect(analyser);
+
+        recordedChunks = [];
+        const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+            ? 'audio/webm;codecs=opus'
+            : 'audio/webm';
+
+        mediaRecorder = new MediaRecorder(micStream, { mimeType });
+
+        mediaRecorder.ondataavailable = (e) => {
+            if (e.data.size > 0) {
+                recordedChunks.push(e.data);
+            }
+        };
+
+        mediaRecorder.onstop = () => {
+            recordingBlob = new Blob(recordedChunks, { type: mediaRecorder.mimeType });
+            recordingDuration = timerSeconds;
+            stopTimer();
+            stopMeter();
+            showReview();
+        };
+
+        mediaRecorder.start(1000);
+        startTimer();
+        updateMeter(vuBarRec);
+        showPhase('recording');
+    }
+
+    function showReview() {
+        const url = URL.createObjectURL(recordingBlob);
+        reviewAudio.src = url;
+        reviewDuration.textContent = 'Duration: ' + formatTime(recordingDuration);
+        showPhase('review');
     }
 
     micSelect.addEventListener('change', function() {
@@ -194,9 +421,85 @@
 
     startBtn.addEventListener('click', function() {
         if (startBtn.disabled) return;
-        stopMeter();
-        // Recording UI will be implemented in issue #4
-        alert('Recording not yet implemented. Coming soon!');
+        beginRecording();
+    });
+
+    pauseBtn.addEventListener('click', function() {
+        if (!mediaRecorder) return;
+        if (mediaRecorder.state === 'recording') {
+            mediaRecorder.pause();
+            pauseTimer();
+            recStatusText.textContent = 'Paused';
+            pauseBtn.textContent = 'Resume';
+            document.querySelector('.rec-dot').classList.add('rec-paused');
+        } else if (mediaRecorder.state === 'paused') {
+            mediaRecorder.resume();
+            resumeTimer();
+            recStatusText.textContent = 'Recording';
+            pauseBtn.textContent = 'Pause';
+            document.querySelector('.rec-dot').classList.remove('rec-paused');
+        }
+    });
+
+    stopBtn.addEventListener('click', function() {
+        if (!mediaRecorder || mediaRecorder.state === 'inactive') return;
+        mediaRecorder.stop();
+    });
+
+    acceptBtn.addEventListener('click', function() {
+        showPhase('attestation');
+    });
+
+    discardBtn.addEventListener('click', function() {
+        recordingBlob = null;
+        recordedChunks = [];
+        reviewAudio.src = '';
+        showPhase('setup');
+        if (micSelect.value) {
+            startMeter(micSelect.value);
+        }
+    });
+
+    backToReviewBtn.addEventListener('click', function() {
+        showPhase('review');
+    });
+
+    attestCheckbox.addEventListener('change', function() {
+        submitBtn.disabled = !this.checked;
+    });
+
+    submitBtn.addEventListener('click', async function() {
+        if (!attestCheckbox.checked || !recordingBlob) return;
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Uploading...';
+        uploadError.classList.add('hidden');
+
+        const formData = new FormData();
+        const ext = recordingBlob.type.includes('webm') ? 'webm' : 'ogg';
+        formData.append('audio', recordingBlob, `recording.${ext}`);
+        formData.append('duration', String(recordingDuration));
+        formData.append('attestation_text', document.getElementById('attestation-text').textContent);
+
+        try {
+            const response = await fetch(uploadUrl, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': csrfToken },
+                body: formData,
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.error || 'Upload failed.');
+            }
+
+            showPhase('done');
+        } catch (err) {
+            uploadError.textContent = err.message;
+            uploadError.classList.remove('hidden');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Submit Recording';
+        }
     });
 
     enumerateDevices();
