@@ -1,7 +1,11 @@
+import logging
+
 from django.db.models import Count
 from django.http import Http404, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
+
+logger = logging.getLogger(__name__)
 
 from .models import Attestation, Book, Narrator, Recording
 
@@ -151,19 +155,25 @@ def upload_recording(request, book_id):
     if not attestation_text:
         return JsonResponse({"error": "Attestation is required."}, status=400)
 
-    recording = Recording.objects.create(
-        book=book,
-        narrator=narrator,
-        audio_file=audio_file,
-        duration_seconds=duration_seconds,
-    )
+    try:
+        recording = Recording.objects.create(
+            book=book,
+            narrator=narrator,
+            audio_file=audio_file,
+            duration_seconds=duration_seconds,
+        )
 
-    Attestation.objects.create(
-        recording=recording,
-        narrator=narrator,
-        book=book,
-        attestation_text=attestation_text,
-    )
+        Attestation.objects.create(
+            recording=recording,
+            narrator=narrator,
+            book=book,
+            attestation_text=attestation_text,
+        )
+    except Exception:
+        logger.exception("Failed to save recording for book=%s narrator=%s", book_id, narrator.id)
+        return JsonResponse({
+            "error": "Something went wrong saving your recording. Please let an admin know."
+        }, status=500)
 
     request.session.pop(f"preflight_{book_id}", None)
     return JsonResponse({

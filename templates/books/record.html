@@ -520,7 +520,7 @@
                     showPhase('done');
                 }
             } else {
-                let msg = 'Upload failed.';
+                let msg = 'Something went wrong saving your recording. Please let an admin know.';
                 try { msg = JSON.parse(xhr.responseText).error || msg; } catch(e) {}
                 uploadError.textContent = msg;
                 uploadError.classList.remove('hidden');
@@ -531,7 +531,7 @@
         });
 
         xhr.addEventListener('error', function() {
-            uploadError.textContent = 'Network error. Please try again.';
+            uploadError.textContent = 'Network error - your recording was not saved. Please check your connection and try again, or let an admin know if this persists.';
             uploadError.classList.remove('hidden');
             submitBtn.disabled = false;
             backToReviewBtn.classList.remove('hidden');
