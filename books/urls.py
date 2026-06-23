@@ -13,4 +13,6 @@ portal_urlpatterns = [
     path("preflight/<str:book_id>/", views.preflight, name="preflight"),
     path("record/<str:book_id>/", views.record, name="record"),
     path("upload/<str:book_id>/", views.upload_recording, name="upload"),
+    path("recording/<uuid:recording_id>/", views.recording_detail, name="recording_detail"),
+    path("recording/<uuid:recording_id>/flag/", views.flag_recording, name="flag_recording"),
 ]

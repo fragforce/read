@@ -415,6 +415,36 @@ audio {
     border-left: 3px solid var(--color-fragforce-gold);
 }
 
+.form-textarea {
+    width: 100%;
+    max-width: 500px;
+    padding: 0.5rem;
+    font-size: 1rem;
+    border: 1px solid var(--color-fragforce-blue);
+    border-radius: 4px;
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-family: inherit;
+    resize: vertical;
+}
+
+.flag-notice {
+    background: var(--color-surface);
+    border-radius: 4px;
+    padding: 1.25rem;
+    border-left: 3px solid var(--color-fragforce-gold);
+}
+
+.flag-notice h3 {
+    color: var(--color-fragforce-gold);
+    margin-bottom: 0.5rem;
+}
+
+.flag-badge {
+    color: var(--color-fragforce-gold);
+    font-weight: 500;
+}
+
 .noscript-notice {
     background: var(--color-surface);
     border-radius: 4px;

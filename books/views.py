@@ -165,3 +165,33 @@ def upload_recording(request, book_id):
 
     request.session.pop(f"preflight_{book_id}", None)
     return JsonResponse({"id": str(recording.id), "redirect": "/portal/"})
+
+
+@require_GET
+@narrator_required
+def recording_detail(request, recording_id):
+    recording = get_object_or_404(Recording, id=recording_id, narrator=request.narrator)
+    return render(request, "books/recording_detail.html", {
+        "recording": recording,
+        "narrator": request.narrator,
+    })
+
+
+@require_POST
+@narrator_required
+def flag_recording(request, recording_id):
+    recording = get_object_or_404(Recording, id=recording_id, narrator=request.narrator)
+
+    reason = request.POST.get("reason", "").strip()
+    if not reason:
+        return render(request, "books/recording_detail.html", {
+            "recording": recording,
+            "narrator": request.narrator,
+            "error": "Please provide a reason for flagging.",
+        })
+
+    recording.flagged_for_review = True
+    recording.flag_reason = reason
+    recording.save()
+
+    return redirect("portal:recording_detail", recording_id=recording.id)
