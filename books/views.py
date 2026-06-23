@@ -1,9 +1,9 @@
 from django.db.models import Count
-from django.http import Http404
+from django.http import Http404, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
-from django.views.decorators.http import require_GET, require_http_methods
+from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
-from .models import Book, Narrator, Recording
+from .models import Attestation, Book, Narrator, Recording
 
 
 @require_http_methods(["GET", "POST"])
@@ -108,6 +108,7 @@ def preflight(request, book_id):
 
         all_checked = all(item["checked"] for item in checklist_items)
         if all_checked:
+            request.session[f"preflight_{book.id}"] = True
             return redirect("portal:record", book_id=book.id)
 
         error = "Please confirm all items before continuing."
@@ -122,5 +123,45 @@ def preflight(request, book_id):
 @require_GET
 @narrator_required
 def record(request, book_id):
+    if not request.session.get(f"preflight_{book_id}"):
+        return redirect("portal:preflight", book_id=book_id)
     book = get_object_or_404(Book, id=book_id)
     return render(request, "books/record.html", {"book": book, "narrator": request.narrator})
+
+
+@require_POST
+@narrator_required
+def upload_recording(request, book_id):
+    book = get_object_or_404(Book, id=book_id)
+    narrator = request.narrator
+
+    audio_file = request.FILES.get("audio")
+    if not audio_file:
+        return JsonResponse({"error": "No audio file provided."}, status=400)
+
+    if audio_file.content_type not in ("audio/webm", "audio/ogg", "audio/mp4", "audio/wav"):
+        return JsonResponse({"error": "Unsupported audio format."}, status=400)
+
+    duration = request.POST.get("duration")
+    duration_seconds = int(float(duration)) if duration else None
+
+    attestation_text = request.POST.get("attestation_text", "").strip()
+    if not attestation_text:
+        return JsonResponse({"error": "Attestation is required."}, status=400)
+
+    recording = Recording.objects.create(
+        book=book,
+        narrator=narrator,
+        audio_file=audio_file,
+        duration_seconds=duration_seconds,
+    )
+
+    Attestation.objects.create(
+        recording=recording,
+        narrator=narrator,
+        book=book,
+        attestation_text=attestation_text,
+    )
+
+    request.session.pop(f"preflight_{book_id}", None)
+    return JsonResponse({"id": str(recording.id), "redirect": "/portal/"})

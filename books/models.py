@@ -55,11 +55,16 @@ class Narrator(models.Model):
         return self.name
 
 
+def recording_upload_path(instance, filename):
+    ext = filename.rsplit(".", 1)[-1] if "." in filename else "webm"
+    return f"recordings/{instance.id}.{ext}"
+
+
 class Recording(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name="recordings")
     narrator = models.ForeignKey(Narrator, on_delete=models.CASCADE, related_name="recordings")
-    audio_file = models.FileField(upload_to="recordings/")
+    audio_file = models.FileField(upload_to=recording_upload_path)
     duration_seconds = models.PositiveIntegerField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
