@@ -21,7 +21,7 @@
     {% elif password_valid %}
     <p class="narrator">As read by: {{ recording.narrator.name }}</p>
     <audio controls>
-        <source src="{{ recording.audio_file.url }}" type="audio/mpeg">
+        <source src="{% url 'books:serve_recording' recording_id=recording.id %}" type="audio/webm">
         <p>Sorry, your browser does not support audio playback.</p>
     </audio>
 

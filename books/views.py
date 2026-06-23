@@ -1,7 +1,9 @@
 import logging
+import os
+import re
 
 from django.db.models import Count
-from django.http import Http404, JsonResponse
+from django.http import FileResponse, Http404, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
@@ -236,3 +238,37 @@ def profile(request):
         "error": error,
         "success": success,
     })
+
+
+@require_GET
+def serve_recording(request, recording_id):
+    recording = get_object_or_404(Recording, id=recording_id)
+    path = recording.audio_file.path
+
+    if not os.path.exists(path):
+        raise Http404
+
+    file_size = os.path.getsize(path)
+    content_type = "audio/webm"
+
+    range_header = request.META.get("HTTP_RANGE")
+    if range_header:
+        match = re.match(r"bytes=(\d+)-(\d*)", range_header)
+        if match:
+            start = int(match.group(1))
+            end = int(match.group(2)) if match.group(2) else file_size - 1
+            end = min(end, file_size - 1)
+            length = end - start + 1
+
+            f = open(path, "rb")
+            f.seek(start)
+            response = FileResponse(f, content_type=content_type, status=206)
+            response["Content-Length"] = length
+            response["Content-Range"] = f"bytes {start}-{end}/{file_size}"
+            response["Accept-Ranges"] = "bytes"
+            return response
+
+    response = FileResponse(open(path, "rb"), content_type=content_type)
+    response["Content-Length"] = file_size
+    response["Accept-Ranges"] = "bytes"
+    return response
