@@ -525,6 +525,25 @@ audio {
     margin-top: 0.5rem;
 }
 
+.upload-progress {
+    margin: 1rem 0;
+}
+
+.progress-bar {
+    height: 0.75rem;
+    background: var(--color-surface);
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid var(--color-fragforce-blue);
+}
+
+.progress-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--color-fragforce-purple);
+    transition: width 0.2s ease;
+}
+
 .attestation-box {
     background: var(--color-surface);
     border-radius: 4px;
