@@ -200,3 +200,29 @@ def flag_recording(request, recording_id):
     recording.save()
 
     return redirect("portal:recording_detail", recording_id=recording.id)
+
+
+@require_http_methods(["GET", "POST"])
+@narrator_required
+def profile(request):
+    narrator = request.narrator
+    error = None
+    success = False
+
+    if request.method == "POST":
+        name = request.POST.get("name", "").strip()
+        email = request.POST.get("email", "").strip()
+
+        if not name or not email:
+            error = "Name and email are required."
+        else:
+            narrator.name = name
+            narrator.email = email
+            narrator.save()
+            success = True
+
+    return render(request, "books/profile.html", {
+        "narrator": narrator,
+        "error": error,
+        "success": success,
+    })

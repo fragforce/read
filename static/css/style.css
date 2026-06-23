@@ -144,6 +144,11 @@ footer {
     margin-top: 1rem;
 }
 
+.success {
+    color: #4caf50;
+    margin-top: 1rem;
+}
+
 /* Forms */
 
 label {
