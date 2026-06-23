@@ -9,7 +9,7 @@
 
     <div class="section">
         <h3>Your Recording</h3>
-        <audio controls src="{{ recording.audio_file.url }}"></audio>
+        <audio controls src="{% url 'books:serve_recording' recording_id=recording.id %}"></audio>
         <p class="text-muted">
             Recorded {{ recording.created_at|date:"M j, Y" }}{% if recording.duration_seconds %} &middot; {{ recording.duration_seconds|floatformat:0 }}s{% endif %}
         </p>
