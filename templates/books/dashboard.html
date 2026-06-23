@@ -4,8 +4,7 @@
 
 {% block content %}
 <div class="dashboard-greeting">
-    <h2>Welcome back, {{ narrator.name }}</h2>
-    <p class="text-muted"><a href="{% url 'portal:profile' %}">Edit profile</a></p>
+    <h2>Welcome back, {{ narrator.name }} <a href="{% url 'portal:profile' %}" class="profile-link">Edit profile</a></h2>
 </div>
 
 <div class="section">

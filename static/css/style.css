@@ -280,6 +280,13 @@ audio {
     margin-bottom: 2rem;
 }
 
+.profile-link {
+    font-family: 'Roboto', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 400;
+    vertical-align: middle;
+}
+
 .book-list {
     list-style: none;
     padding: 0;
