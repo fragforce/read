@@ -61,10 +61,12 @@ def dashboard(request):
     narrator = request.narrator
     my_recordings = Recording.objects.filter(narrator=narrator).select_related("book")
 
-    recorded_book_ids = set(my_recordings.values_list("book_id", flat=True))
+    unflagged_book_ids = set(
+        my_recordings.filter(flagged_for_review=False).values_list("book_id", flat=True)
+    )
 
     available_books = (
-        Book.objects.exclude(id__in=recorded_book_ids)
+        Book.objects.exclude(id__in=unflagged_book_ids)
         .annotate(recording_count=Count("recordings"))
     )
 
@@ -164,7 +166,10 @@ def upload_recording(request, book_id):
     )
 
     request.session.pop(f"preflight_{book_id}", None)
-    return JsonResponse({"id": str(recording.id), "redirect": "/portal/"})
+    return JsonResponse({
+        "id": str(recording.id),
+        "redirect": f"/portal/recording/{recording.id}/",
+    })
 
 
 @require_GET
