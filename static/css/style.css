@@ -125,11 +125,16 @@ footer {
     border: none;
 }
 
+.btn:visited {
+    color: inherit;
+}
+
 .btn:hover {
     text-decoration: none;
 }
 
-.btn-primary {
+.btn-primary,
+.btn-primary:visited {
     background: var(--color-fragforce-purple);
     color: var(--color-text);
 }
