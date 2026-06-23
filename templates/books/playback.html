@@ -20,10 +20,34 @@
     </form>
     {% elif password_valid %}
     <p class="narrator">As read by: {{ recording.narrator.name }}</p>
-    <audio controls>
+    <audio id="audio-player" controls>
         <source src="{% url 'books:serve_recording' recording_id=recording.id %}" type="audio/webm">
         <p>Sorry, your browser does not support audio playback.</p>
     </audio>
+    {% if recording.duration_seconds %}
+    <p class="text-muted"><span id="duration-display">{{ recording.duration_formatted }}</span></p>
+    <script>
+    (function() {
+        var audio = document.getElementById('audio-player');
+        var stored = {{ recording.duration_seconds }};
+        var display = document.getElementById('duration-display');
+
+        function fmt(s) {
+            var m = Math.floor(s / 60);
+            var sec = Math.floor(s % 60);
+            return m + ':' + (sec < 10 ? '0' : '') + sec;
+        }
+
+        display.textContent = fmt(stored);
+
+        audio.addEventListener('loadedmetadata', function() {
+            if (isFinite(audio.duration) && audio.duration > 0) {
+                display.textContent = fmt(audio.duration);
+            }
+        });
+    })();
+    </script>
+    {% endif %}
 
     {% if not book.public_domain and book.permission_phrasing %}
     <div class="attribution">

@@ -9,11 +9,35 @@
 
     <div class="section">
         <h3>Your Recording</h3>
-        <audio controls src="{% url 'books:serve_recording' recording_id=recording.id %}"></audio>
+        <audio id="audio-player" controls src="{% url 'books:serve_recording' recording_id=recording.id %}"></audio>
         <p class="text-muted">
-            Recorded {{ recording.created_at|date:"M j, Y" }}{% if recording.duration_seconds %} &middot; {{ recording.duration_seconds|floatformat:0 }}s{% endif %}
+            Recorded {{ recording.created_at|date:"M j, Y" }}{% if recording.duration_seconds %} &middot; <span id="duration-display">{{ recording.duration_formatted }}</span>{% endif %}
         </p>
     </div>
+
+    {% if recording.duration_seconds %}
+    <script>
+    (function() {
+        var audio = document.getElementById('audio-player');
+        var stored = {{ recording.duration_seconds }};
+        var display = document.getElementById('duration-display');
+
+        function fmt(s) {
+            var m = Math.floor(s / 60);
+            var sec = Math.floor(s % 60);
+            return m + ':' + (sec < 10 ? '0' : '') + sec;
+        }
+
+        display.textContent = fmt(stored);
+
+        audio.addEventListener('loadedmetadata', function() {
+            if (isFinite(audio.duration) && audio.duration > 0) {
+                display.textContent = fmt(audio.duration);
+            }
+        });
+    })();
+    </script>
+    {% endif %}
 
     {% if recording.flagged_for_review %}
     <div class="section">

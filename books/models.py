@@ -70,6 +70,13 @@ class Recording(models.Model):
     flag_reason = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    @property
+    def duration_formatted(self):
+        if not self.duration_seconds:
+            return None
+        m, s = divmod(self.duration_seconds, 60)
+        return f"{m}:{s:02d}"
+
     def __str__(self):
         return f"{self.book.title} - {self.narrator.name}"
 
