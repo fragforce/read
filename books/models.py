@@ -66,6 +66,8 @@ class Recording(models.Model):
     narrator = models.ForeignKey(Narrator, on_delete=models.CASCADE, related_name="recordings")
     audio_file = models.FileField(upload_to=recording_upload_path)
     duration_seconds = models.PositiveIntegerField(null=True, blank=True)
+    flagged_for_review = models.BooleanField(default=False)
+    flag_reason = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

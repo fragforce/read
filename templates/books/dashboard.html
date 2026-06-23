@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="dashboard-greeting">
-    <h2>Welcome back, {{ narrator.name }}</h2>
+    <h2>Welcome back, {{ narrator.name }} <a href="{% url 'portal:profile' %}" class="profile-link">Edit profile</a></h2>
 </div>
 
 <div class="section">
@@ -16,8 +16,12 @@
             <div class="book-info">
                 <div class="book-title">{{ recording.book.title }}</div>
                 <div class="book-meta">{{ recording.book.author }}{% if recording.book.illustrator %} &middot; Illustrated by {{ recording.book.illustrator }}{% endif %}</div>
-                <div class="recording-status">Recorded {{ recording.created_at|date:"M j, Y" }}{% if recording.duration_seconds %} &middot; {{ recording.duration_seconds|floatformat:0 }}s{% endif %}</div>
+                <div class="recording-status">
+                    Recorded {{ recording.created_at|date:"M j, Y" }}{% if recording.duration_seconds %} &middot; {{ recording.duration_seconds|floatformat:0 }}s{% endif %}
+                    {% if recording.flagged_for_review %} &middot; <span class="flag-badge">Flagged</span>{% endif %}
+                </div>
             </div>
+            <a href="{% url 'portal:recording_detail' recording_id=recording.id %}" class="btn">View</a>
         </li>
         {% endfor %}
     </ul>

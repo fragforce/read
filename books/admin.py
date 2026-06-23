@@ -69,8 +69,8 @@ class NarratorAdmin(admin.ModelAdmin):
 
 @admin.register(Recording)
 class RecordingAdmin(admin.ModelAdmin):
-    list_display = ("book", "narrator", "duration_seconds", "created_at")
-    list_filter = ("book",)
+    list_display = ("book", "narrator", "duration_seconds", "flagged_for_review", "created_at")
+    list_filter = ("book", "flagged_for_review")
     search_fields = ("narrator__name",)
 
 

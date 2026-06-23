@@ -125,11 +125,16 @@ footer {
     border: none;
 }
 
+.btn:visited {
+    color: inherit;
+}
+
 .btn:hover {
     text-decoration: none;
 }
 
-.btn-primary {
+.btn-primary,
+.btn-primary:visited {
     background: var(--color-fragforce-purple);
     color: var(--color-text);
 }
@@ -141,6 +146,11 @@ footer {
 
 .error {
     color: var(--color-fragforce-gold);
+    margin-top: 1rem;
+}
+
+.success {
+    color: #4caf50;
     margin-top: 1rem;
 }
 
@@ -268,6 +278,13 @@ audio {
 
 .dashboard-greeting {
     margin-bottom: 2rem;
+}
+
+.profile-link {
+    font-family: 'Roboto', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 400;
+    vertical-align: middle;
 }
 
 .book-list {
@@ -415,6 +432,36 @@ audio {
     border-left: 3px solid var(--color-fragforce-gold);
 }
 
+.form-textarea {
+    width: 100%;
+    max-width: 500px;
+    padding: 0.5rem;
+    font-size: 1rem;
+    border: 1px solid var(--color-fragforce-blue);
+    border-radius: 4px;
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-family: inherit;
+    resize: vertical;
+}
+
+.flag-notice {
+    background: var(--color-surface);
+    border-radius: 4px;
+    padding: 1.25rem;
+    border-left: 3px solid var(--color-fragforce-gold);
+}
+
+.flag-notice h3 {
+    color: var(--color-fragforce-gold);
+    margin-bottom: 0.5rem;
+}
+
+.flag-badge {
+    color: var(--color-fragforce-gold);
+    font-weight: 500;
+}
+
 .noscript-notice {
     background: var(--color-surface);
     border-radius: 4px;
@@ -493,6 +540,25 @@ audio {
 
 .recording-duration {
     margin-top: 0.5rem;
+}
+
+.upload-progress {
+    margin: 1rem 0;
+}
+
+.progress-bar {
+    height: 0.75rem;
+    background: var(--color-surface);
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid var(--color-fragforce-blue);
+}
+
+.progress-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--color-fragforce-purple);
+    transition: width 0.2s ease;
 }
 
 .attestation-box {
