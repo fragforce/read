@@ -82,15 +82,6 @@ def recover_pending_recordings():
 
     ensure_directories()
 
-    processing_dir = os.path.join(settings.MEDIA_ROOT, "processing")
-    if os.path.exists(processing_dir):
-        for filename in os.listdir(processing_dir):
-            filepath = os.path.join(processing_dir, filename)
-            try:
-                os.remove(filepath)
-            except OSError:
-                pass
-
     stuck = Recording.objects.filter(
         status__in=[RecordingStatus.PENDING, RecordingStatus.PROCESSING]
     )
