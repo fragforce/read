@@ -1,16 +1,19 @@
+import io
 import logging
 import os
 import re
 
 from django.db.models import Count
-from django.http import FileResponse, Http404, JsonResponse
+from django.http import FileResponse, Http404, HttpResponse, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 logger = logging.getLogger(__name__)
 
-from .models import Attestation, Book, Narrator, Recording, RecordingStatus
+from .models import Attestation, Book, Narrator, QRCode, Recording, RecordingStatus
 from .processing import spawn_remux
+from .qr import generate_label_png, generate_qr_png, generate_qr_svg
 
 
 @require_http_methods(["GET", "POST"])
@@ -26,20 +29,18 @@ def playback(request, book_id, recording_id=None):
         if not recording:
             raise Http404("No recordings available for this book.")
 
-    if not book.public_domain:
-        qr_code = book.qr_codes.filter(recording=recording).first() or book.qr_codes.first()
-        password_required = bool(qr_code and qr_code.password)
-        password_valid = False
+    password_required = book.qr_codes.exclude(password="").exists()
+    password_valid = False
 
-        if password_required:
+    if password_required:
+        if request.session.get(f"book_{book_id}_unlocked"):
+            password_valid = True
+        else:
             submitted = request.POST.get("password", "")
-            if submitted and submitted == qr_code.password:
+            if submitted and book.qr_codes.filter(password=submitted).exists():
                 password_valid = True
                 request.session[f"book_{book_id}_unlocked"] = True
-            elif request.session.get(f"book_{book_id}_unlocked"):
-                password_valid = True
     else:
-        password_required = False
         password_valid = True
 
     return render(request, "books/playback.html", {
@@ -284,3 +285,69 @@ def serve_recording(request, recording_id):
     response["Content-Length"] = file_size
     response["Accept-Ranges"] = "bytes"
     return response
+
+
+def _playback_url(request, qr_code):
+    path = reverse("qr_redirect", kwargs={"short_code": qr_code.short_code})
+    return request.build_absolute_uri(path)
+
+
+@require_GET
+def qr_redirect(request, short_code):
+    qr_code = get_object_or_404(QRCode.objects.select_related("book", "recording"), short_code=short_code)
+    if qr_code.recording:
+        url = reverse("books:playback_specific", kwargs={"book_id": qr_code.book_id, "recording_id": qr_code.recording_id})
+    else:
+        url = reverse("books:playback", kwargs={"book_id": qr_code.book_id})
+    return redirect(url)
+
+
+@require_GET
+def qr_png(request, qr_id):
+    qr_code = get_object_or_404(QRCode.objects.select_related("book", "recording"), id=qr_id)
+    url = _playback_url(request, qr_code)
+    img = generate_qr_png(url)
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    buf.seek(0)
+    return HttpResponse(buf.getvalue(), content_type="image/png")
+
+
+@require_GET
+def qr_svg(request, qr_id):
+    qr_code = get_object_or_404(QRCode.objects.select_related("book", "recording"), id=qr_id)
+    url = _playback_url(request, qr_code)
+    img = generate_qr_svg(url)
+    buf = io.BytesIO()
+    img.save(buf)
+    buf.seek(0)
+    return HttpResponse(buf.getvalue(), content_type="image/svg+xml")
+
+
+@require_GET
+def qr_label(request, qr_id):
+    qr_code = get_object_or_404(QRCode.objects.select_related("book", "recording__narrator"), id=qr_id)
+    url = _playback_url(request, qr_code)
+    narrator_name = qr_code.recording.narrator.name if qr_code.recording else "Unknown"
+    buf = generate_label_png(url, qr_code.book.title, narrator_name, password=qr_code.password or None)
+    return HttpResponse(buf.getvalue(), content_type="image/png")
+
+
+@require_GET
+def qr_sheet(request, book_id):
+    book = get_object_or_404(Book, id=book_id)
+    qr_codes = book.qr_codes.select_related("recording__narrator").all()
+    if not qr_codes.exists():
+        raise Http404("No QR codes for this book.")
+
+    items = []
+    for qr_code in qr_codes:
+        url = _playback_url(request, qr_code)
+        narrator_name = qr_code.recording.narrator.name if qr_code.recording else "Unknown"
+        items.append({
+            "qr_code": qr_code,
+            "url": url,
+            "narrator_name": narrator_name,
+        })
+
+    return render(request, "books/qr_sheet.html", {"book": book, "items": items})
