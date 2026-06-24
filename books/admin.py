@@ -8,11 +8,16 @@ from .models import Book, Narrator, Recording, QRCode, Attestation
 
 @admin.register(Book)
 class BookAdmin(admin.ModelAdmin):
-    list_display = ("title", "author", "public_domain", "id")
+    list_display = ("title", "author", "public_domain", "id", "qr_sheet_link")
     list_filter = ("public_domain",)
     search_fields = ("title", "author")
     prepopulated_fields = {"slug": ("title",)}
     readonly_fields = ("id",)
+
+    @admin.display(description="QR Sheet")
+    def qr_sheet_link(self, obj):
+        url = f"/b/qr/sheet/{obj.id}/"
+        return format_html('<a href="{}" target="_blank">Print</a>', url)
 
     def get_exclude(self, request, obj=None):
         if obj is None:
@@ -90,8 +95,16 @@ class RecordingAdmin(admin.ModelAdmin):
 
 @admin.register(QRCode)
 class QRCodeAdmin(admin.ModelAdmin):
-    list_display = ("book", "recording", "label_text", "password")
+    list_display = ("book", "recording", "short_code", "label_text", "password", "qr_links")
     list_filter = ("book",)
+    readonly_fields = ("short_code",)
+
+    @admin.display(description="QR")
+    def qr_links(self, obj):
+        png_url = f"/b/qr/{obj.id}.png"
+        svg_url = f"/b/qr/{obj.id}.svg"
+        label_url = f"/b/qr/{obj.id}/label.png"
+        return format_html('<a href="{}">PNG</a> | <a href="{}">SVG</a> | <a href="{}">Label</a>', png_url, svg_url, label_url)
 
 
 @admin.register(Attestation)

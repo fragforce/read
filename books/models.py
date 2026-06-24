@@ -105,11 +105,39 @@ class Recording(models.Model):
         return f"{self.book.title} - {self.narrator.name}"
 
 
+QR_CODE_ALPHABET = "23456789abcdefghjkmnpqrstuvwxyz"
+
+
+def generate_qr_short_code():
+    from django.apps import apps
+
+    try:
+        QRCode = apps.get_model("books", "QRCode")
+    except LookupError:
+        return "".join(secrets.choice(QR_CODE_ALPHABET) for _ in range(8))
+
+    for _ in range(100):
+        candidate = "".join(secrets.choice(QR_CODE_ALPHABET) for _ in range(8))
+        if not QRCode.objects.filter(short_code=candidate).exists():
+            return candidate
+    raise RuntimeError("Failed to generate unique QR short code after 100 attempts")
+
+
+def generate_qr_password():
+    from registration.wordlist import WORDS
+
+    pin = "".join(secrets.choice(QR_CODE_ALPHABET) for _ in range(4))
+    word1 = secrets.choice(WORDS).lower()
+    word2 = secrets.choice(WORDS).lower()
+    return f"{pin}-{word1}-{word2}"
+
+
 class QRCode(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    short_code = models.CharField(max_length=8, unique=True, default=generate_qr_short_code)
     book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name="qr_codes")
     recording = models.ForeignKey(Recording, on_delete=models.SET_NULL, null=True, blank=True, related_name="qr_codes")
-    password = models.CharField(max_length=10, blank=True)
+    password = models.CharField(max_length=30, default=generate_qr_password)
     label_text = models.CharField(max_length=255)
 
     class Meta:

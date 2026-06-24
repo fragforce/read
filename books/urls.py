@@ -7,6 +7,10 @@ urlpatterns = [
     path("audio/<uuid:recording_id>/", views.serve_recording, name="serve_recording"),
     path("play/<str:book_id>/", views.playback, name="playback"),
     path("play/<str:book_id>/<uuid:recording_id>/", views.playback, name="playback_specific"),
+    path("qr/<uuid:qr_id>.png", views.qr_png, name="qr_png"),
+    path("qr/<uuid:qr_id>.svg", views.qr_svg, name="qr_svg"),
+    path("qr/<uuid:qr_id>/label.png", views.qr_label, name="qr_label"),
+    path("qr/sheet/<str:book_id>/", views.qr_sheet, name="qr_sheet"),
 ]
 
 portal_urlpatterns = [

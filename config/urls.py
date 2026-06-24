@@ -10,6 +10,7 @@ from django.views.decorators.http import require_GET
 from django.views.generic import TemplateView
 
 from books.urls import portal_urlpatterns
+from books.views import qr_redirect
 from registration.urls import login_urlpatterns
 
 PRIVATE_NETWORKS = (
@@ -37,6 +38,7 @@ urlpatterns = [
     path("", TemplateView.as_view(template_name="home.html"), name="home"),
     path("admin/", admin.site.urls),
     path("b/", include("books.urls")),
+    path("code/<str:short_code>/", qr_redirect, name="qr_redirect"),
     path("portal/", include((portal_urlpatterns, "portal"))),
     path("login/", include((login_urlpatterns, "login"))),
     path("register/", include("registration.urls")),
