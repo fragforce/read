@@ -81,11 +81,11 @@ class RecordingAdmin(admin.ModelAdmin):
         from .processing import spawn_remux
 
         failed = queryset.filter(status=RecordingStatus.FAILED)
-        count = failed.count()
+        failed_ids = list(failed.values_list("id", flat=True))
         failed.update(status=RecordingStatus.PENDING)
-        for recording in failed:
-            spawn_remux(recording.id)
-        self.message_user(request, f"Retrying {count} recording(s).")
+        for recording_id in failed_ids:
+            spawn_remux(recording_id)
+        self.message_user(request, f"Retrying {len(failed_ids)} recording(s).")
 
 
 @admin.register(QRCode)
