@@ -77,6 +77,19 @@ def remux_recording(recording_id):
     Recording.objects.filter(id=recording_id).update(status=RecordingStatus.READY)
     logger.info("Recording %s remuxed successfully", recording_id)
 
+    try:
+        from .models import QRCode
+
+        recording = Recording.objects.select_related("book", "narrator").get(id=recording_id)
+        if not QRCode.objects.filter(book=recording.book, recording=recording).exists():
+            QRCode.objects.create(
+                book=recording.book,
+                recording=recording,
+                label_text=f"{recording.book.title} - {recording.narrator.name}",
+            )
+    except Exception:
+        logger.exception("Failed to create QR code record for recording %s", recording_id)
+
 
 def spawn_remux(recording_id):
     thread = threading.Thread(
