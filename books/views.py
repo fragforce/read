@@ -9,7 +9,8 @@ from django.views.decorators.http import require_GET, require_http_methods, requ
 
 logger = logging.getLogger(__name__)
 
-from .models import Attestation, Book, Narrator, Recording
+from .models import Attestation, Book, Narrator, Recording, RecordingStatus
+from .processing import spawn_remux
 
 
 @require_http_methods(["GET", "POST"])
@@ -17,9 +18,11 @@ def playback(request, book_id, recording_id=None):
     book = get_object_or_404(Book, id=book_id)
 
     if recording_id:
-        recording = get_object_or_404(Recording, id=recording_id, book=book)
+        recording = get_object_or_404(
+            Recording, id=recording_id, book=book, status=RecordingStatus.READY
+        )
     else:
-        recording = book.recordings.order_by("?").first()
+        recording = book.recordings.filter(status=RecordingStatus.READY).order_by("?").first()
         if not recording:
             raise Http404("No recordings available for this book.")
 
@@ -177,6 +180,8 @@ def upload_recording(request, book_id):
             "error": "Something went wrong saving your recording. Please let an admin know."
         }, status=500)
 
+    spawn_remux(recording.id)
+
     request.session.pop(f"preflight_{book_id}", None)
     return JsonResponse({
         "id": str(recording.id),
@@ -243,7 +248,14 @@ def profile(request):
 @require_GET
 def serve_recording(request, recording_id):
     recording = get_object_or_404(Recording, id=recording_id)
-    path = recording.audio_file.path
+
+    if recording.status == RecordingStatus.READY:
+        path = recording.finalized_path
+    else:
+        narrator_id = request.session.get("narrator_id")
+        if str(recording.narrator_id) != str(narrator_id):
+            raise Http404
+        path = recording.audio_file.path
 
     if not os.path.exists(path):
         raise Http404

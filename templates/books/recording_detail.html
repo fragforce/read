@@ -9,6 +9,15 @@
 
     <div class="section">
         <h3>Your Recording</h3>
+        {% if recording.status == "pending" or recording.status == "processing" %}
+        <div class="processing-notice">
+            <p>Your recording is being prepared for playback. Seeking will work once processing completes. Refresh to check.</p>
+        </div>
+        {% elif recording.status == "failed" %}
+        <div class="flag-notice">
+            <p>There was an issue preparing your recording for playback. An admin has been notified.</p>
+        </div>
+        {% endif %}
         <audio id="audio-player" controls src="{% url 'books:serve_recording' recording_id=recording.id %}"></audio>
         <p class="text-muted">
             Recorded {{ recording.created_at|date:"M j, Y" }}{% if recording.duration_seconds %} &middot; <span id="duration-display">{{ recording.duration_formatted }}</span>{% endif %}

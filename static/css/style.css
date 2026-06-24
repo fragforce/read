@@ -462,6 +462,19 @@ audio {
     font-weight: 500;
 }
 
+.processing-notice {
+    background: var(--color-surface);
+    border-radius: 4px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    border-left: 3px solid var(--color-fragforce-blue);
+}
+
+.processing-badge {
+    color: var(--color-fragforce-blue);
+    font-weight: 500;
+}
+
 .noscript-notice {
     background: var(--color-surface);
     border-radius: 4px;

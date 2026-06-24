@@ -18,6 +18,8 @@
                 <div class="book-meta">{{ recording.book.author }}{% if recording.book.illustrator %} &middot; Illustrated by {{ recording.book.illustrator }}{% endif %}</div>
                 <div class="recording-status">
                     Recorded {{ recording.created_at|date:"M j, Y" }}{% if recording.duration_seconds %} &middot; {{ recording.duration_formatted }}{% endif %}
+                    {% if recording.status == "processing" or recording.status == "pending" %} &middot; <span class="processing-badge">Processing</span>{% endif %}
+                    {% if recording.status == "failed" %} &middot; <span class="flag-badge">Failed</span>{% endif %}
                     {% if recording.flagged_for_review %} &middot; <span class="flag-badge">Flagged</span>{% endif %}
                 </div>
             </div>
