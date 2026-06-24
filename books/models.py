@@ -1,5 +1,8 @@
+import os
 import secrets
 import uuid
+
+from django.conf import settings
 from django.db import models
 
 # Lowercase alphanumeric minus easily confused characters: 0/O, 1/I/l
@@ -60,15 +63,36 @@ def recording_upload_path(instance, filename):
     return f"recordings/{instance.id}.{ext}"
 
 
+class RecordingStatus(models.TextChoices):
+    PENDING = "pending"
+    PROCESSING = "processing"
+    READY = "ready"
+    FAILED = "failed"
+
+
 class Recording(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name="recordings")
     narrator = models.ForeignKey(Narrator, on_delete=models.CASCADE, related_name="recordings")
     audio_file = models.FileField(upload_to=recording_upload_path)
     duration_seconds = models.PositiveIntegerField(null=True, blank=True)
+    status = models.CharField(
+        max_length=12,
+        choices=RecordingStatus.choices,
+        default=RecordingStatus.PENDING,
+        db_index=True,
+    )
     flagged_for_review = models.BooleanField(default=False)
     flag_reason = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def finalized_path(self):
+        return os.path.join(settings.MEDIA_ROOT, "finalized", f"{self.id}.webm")
+
+    @property
+    def processing_path(self):
+        return os.path.join(settings.MEDIA_ROOT, "processing", f"{self.id}.webm")
 
     @property
     def duration_formatted(self):
