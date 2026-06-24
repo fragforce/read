@@ -69,9 +69,23 @@ class NarratorAdmin(admin.ModelAdmin):
 
 @admin.register(Recording)
 class RecordingAdmin(admin.ModelAdmin):
-    list_display = ("book", "narrator", "duration_seconds", "flagged_for_review", "created_at")
-    list_filter = ("book", "flagged_for_review")
+    list_display = ("book", "narrator", "status", "duration_seconds", "flagged_for_review", "created_at")
+    list_filter = ("book", "status", "flagged_for_review")
     search_fields = ("narrator__name",)
+    readonly_fields = ("status",)
+    actions = ["retry_failed_recordings"]
+
+    @admin.action(description="Retry remuxing for selected failed recordings")
+    def retry_failed_recordings(self, request, queryset):
+        from .models import RecordingStatus
+        from .processing import spawn_remux
+
+        failed = queryset.filter(status=RecordingStatus.FAILED)
+        count = failed.count()
+        failed.update(status=RecordingStatus.PENDING)
+        for recording in failed:
+            spawn_remux(recording.id)
+        self.message_user(request, f"Retrying {count} recording(s).")
 
 
 @admin.register(QRCode)
