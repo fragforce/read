@@ -36,7 +36,7 @@ def playback(request, book_id, recording_id=None):
         if request.session.get(f"book_{book_id}_unlocked"):
             password_valid = True
         else:
-            submitted = request.POST.get("password", "")
+            submitted = request.POST.get("password", "").strip().lower()
             if submitted and book.qr_codes.filter(password=submitted).exists():
                 password_valid = True
                 request.session[f"book_{book_id}_unlocked"] = True
