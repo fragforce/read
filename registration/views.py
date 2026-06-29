@@ -1,10 +1,11 @@
 from django.conf import settings
-from django.shortcuts import render, redirect
 from django.http import Http404
+from django.shortcuts import redirect, render
 from django.utils import timezone
-from django.views.decorators.http import require_http_methods, require_GET
+from django.views.decorators.http import require_GET, require_http_methods
 
 from books.models import Narrator
+
 from .models import EventCode, InviteLink
 from .wordlist import generate_passphrase
 
