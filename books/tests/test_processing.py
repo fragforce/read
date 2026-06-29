@@ -6,7 +6,7 @@ from django.conf import settings
 from django.test import TestCase
 
 from books.models import Book, Narrator, QRCode, Recording, RecordingStatus
-from books.processing import remux_recording
+from books.processing import recover_pending_recordings, remux_recording, spawn_remux
 
 
 class RemuxRecordingTest(TestCase):
@@ -87,3 +87,52 @@ class RemuxRecordingTest(TestCase):
         remux_recording(recording.id)
 
         assert QRCode.objects.filter(recording=recording).count() == 1
+
+    def test_no_audio_file_sets_failed(self):
+        recording = Recording.objects.create(
+            book=self.book, narrator=self.narrator, status=RecordingStatus.PENDING
+        )
+        remux_recording(recording.id)
+        recording.refresh_from_db()
+        assert recording.status == RecordingStatus.FAILED
+
+    def test_missing_raw_file_sets_failed(self):
+        recording = Recording.objects.create(
+            book=self.book, narrator=self.narrator, status=RecordingStatus.PENDING
+        )
+        recording.audio_file.name = "recordings/nonexistent.webm"
+        recording.save(update_fields=["audio_file"])
+        remux_recording(recording.id)
+        recording.refresh_from_db()
+        assert recording.status == RecordingStatus.FAILED
+
+    @patch("subprocess.run")
+    def test_qr_creation_failure_does_not_break_remux(self, mock_run):
+        recording = self._create_recording_with_file()
+        finalized_path = os.path.join(settings.MEDIA_ROOT, "finalized", f"{recording.id}.webm")
+        os.makedirs(os.path.dirname(finalized_path), exist_ok=True)
+
+        def fake_ffmpeg(*args, **kwargs):
+            with open(finalized_path, "wb") as f:
+                f.write(b"remuxed")
+            return type("Result", (), {"returncode": 0, "stderr": ""})()
+
+        mock_run.side_effect = fake_ffmpeg
+
+        with patch("books.processing._create_qr_for_recording", side_effect=Exception("QR error")):
+            remux_recording(recording.id)
+
+        recording.refresh_from_db()
+        assert recording.status == RecordingStatus.READY
+
+    def test_spawn_remux_returns_thread(self):
+        recording = self._create_recording_with_file()
+        thread = spawn_remux(recording.id)
+        thread.join(timeout=5)
+        assert not thread.is_alive()
+
+    def test_recover_pending_spawns_remux(self):
+        recording = self._create_recording_with_file()
+        with patch("books.processing.spawn_remux") as mock_spawn:
+            recover_pending_recordings()
+        mock_spawn.assert_called_once_with(recording.id)
