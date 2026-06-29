@@ -10,14 +10,19 @@ class BooksConfig(AppConfig):
     name = "books"
 
     def ready(self):
-
-        if any(cmd in sys.argv for cmd in ["migrate", "collectstatic", "makemigrations", "createsuperuser", "check"]):
+        if not self._should_recover():
             return
 
-        if os.environ.get("RUN_MAIN") == "true" or "runserver" not in sys.argv:
-            from .processing import recover_pending_recordings
-            threading.Thread(
-                target=recover_pending_recordings,
-                daemon=True,
-                name="remux-recovery",
-            ).start()
+        from .processing import recover_pending_recordings
+        threading.Thread(
+            target=recover_pending_recordings,
+            daemon=True,
+            name="remux-recovery",
+        ).start()
+
+    def _should_recover(self):
+        if "gunicorn" in sys.argv[0]:
+            return True
+        if "runserver" in sys.argv and os.environ.get("RUN_MAIN") == "true":
+            return True
+        return False
