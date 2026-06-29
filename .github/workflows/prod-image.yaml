@@ -9,7 +9,7 @@ on:
 
 jobs:
   build:
-    name: Build & push docker image
+    name: Build & push prod image
     if: github.repository == 'fragforce/read'
     runs-on: ubuntu-latest
     permissions:
