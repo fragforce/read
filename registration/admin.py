@@ -13,7 +13,7 @@ class EventCodeAdmin(admin.ModelAdmin):
     def get_exclude(self, request, obj=None):
         if obj is None:
             return ("code",)
-        return ()
+        return None
 
 
 @admin.register(InviteLink)
@@ -26,4 +26,4 @@ class InviteLinkAdmin(admin.ModelAdmin):
     def get_exclude(self, request, obj=None):
         if obj is None:
             return ("token", "used", "used_at", "narrator")
-        return ()
+        return None
