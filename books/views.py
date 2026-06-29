@@ -3,10 +3,12 @@ import logging
 import os
 import re
 
+from django.conf import settings
 from django.db.models import Count
 from django.http import FileResponse, Http404, HttpResponse, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
+from django.utils import timezone
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 logger = logging.getLogger(__name__)
@@ -20,6 +22,9 @@ from .qr import generate_label_png, generate_qr_png, generate_qr_svg
 def playback(request, book_id, recording_id=None):
     book = get_object_or_404(Book, id=book_id)
 
+    if book.license_expiry and book.license_expiry < timezone.now().date():
+        return render(request, "books/playback_expired.html", {"book": book})
+
     if recording_id:
         recording = get_object_or_404(
             Recording, id=recording_id, book=book, status=RecordingStatus.READY
@@ -31,15 +36,38 @@ def playback(request, book_id, recording_id=None):
 
     password_required = book.qr_codes.exclude(password="").exists()
     password_valid = False
+    password_error = None
 
     if password_required:
         if request.session.get(f"book_{book_id}_unlocked"):
             password_valid = True
         else:
-            submitted = request.POST.get("password", "")
-            if submitted and book.qr_codes.filter(password=submitted).exists():
-                password_valid = True
-                request.session[f"book_{book_id}_unlocked"] = True
+            attempts_key = f"book_{book_id}_pw_attempts"
+            lockout_key = f"book_{book_id}_pw_lockout"
+            lockout_until = request.session.get(lockout_key)
+
+            if lockout_until and timezone.now().timestamp() < lockout_until:
+                password_error = "Too many attempts. Please try again later."
+            else:
+                if lockout_until:
+                    request.session.pop(lockout_key, None)
+                    request.session[attempts_key] = 0
+
+                submitted = request.POST.get("password", "").strip().lower()
+                if submitted:
+                    if book.qr_codes.filter(password=submitted).exists():
+                        password_valid = True
+                        request.session[f"book_{book_id}_unlocked"] = True
+                        request.session.pop(attempts_key, None)
+                        request.session.pop(lockout_key, None)
+                    else:
+                        attempts = request.session.get(attempts_key, 0) + 1
+                        request.session[attempts_key] = attempts
+                        if attempts >= 5:
+                            request.session[lockout_key] = timezone.now().timestamp() + 300
+                            password_error = "Too many attempts. Please try again later."
+                        else:
+                            password_error = "Incorrect password."
     else:
         password_valid = True
 
@@ -48,6 +76,7 @@ def playback(request, book_id, recording_id=None):
         "recording": recording,
         "password_required": password_required,
         "password_valid": password_valid,
+        "password_error": password_error,
     })
 
 
@@ -154,12 +183,19 @@ def upload_recording(request, book_id):
     if audio_file.content_type not in ("audio/webm", "audio/ogg", "audio/mp4", "audio/wav"):
         return JsonResponse({"error": "Unsupported audio format."}, status=400)
 
+    if audio_file.size > settings.FILE_UPLOAD_MAX_MEMORY_SIZE:
+        return JsonResponse({"error": "Audio file is too large."}, status=400)
+
     duration = request.POST.get("duration")
     duration_seconds = int(float(duration)) if duration else None
+    if duration_seconds is not None and (duration_seconds <= 0 or duration_seconds > settings.RECORDING_MAX_DURATION_SECONDS):
+        return JsonResponse({"error": "Recording duration is out of bounds."}, status=400)
 
     attestation_text = request.POST.get("attestation_text", "").strip()
     if not attestation_text:
         return JsonResponse({"error": "Attestation is required."}, status=400)
+    if len(attestation_text) > 2000:
+        return JsonResponse({"error": "Attestation text is too long."}, status=400)
 
     try:
         recording = Recording.objects.create(
@@ -248,7 +284,11 @@ def profile(request):
 
 @require_GET
 def serve_recording(request, recording_id):
-    recording = get_object_or_404(Recording, id=recording_id)
+    recording = get_object_or_404(Recording.objects.select_related("book"), id=recording_id)
+
+    book = recording.book
+    if book.license_expiry and book.license_expiry < timezone.now().date():
+        raise Http404
 
     if recording.status == RecordingStatus.READY:
         path = recording.finalized_path
@@ -273,9 +313,11 @@ def serve_recording(request, recording_id):
             end = min(end, file_size - 1)
             length = end - start + 1
 
-            f = open(path, "rb")
-            f.seek(start)
-            response = FileResponse(f, content_type=content_type, status=206)
+            with open(path, "rb") as f:
+                f.seek(start)
+                data = f.read(length)
+
+            response = HttpResponse(data, content_type=content_type, status=206)
             response["Content-Length"] = length
             response["Content-Range"] = f"bytes {start}-{end}/{file_size}"
             response["Accept-Ranges"] = "bytes"
@@ -310,7 +352,9 @@ def qr_png(request, qr_id):
     buf = io.BytesIO()
     img.save(buf, format="PNG")
     buf.seek(0)
-    return HttpResponse(buf.getvalue(), content_type="image/png")
+    response = HttpResponse(buf.getvalue(), content_type="image/png")
+    response["Cache-Control"] = "no-store"
+    return response
 
 
 @require_GET
@@ -321,7 +365,9 @@ def qr_svg(request, qr_id):
     buf = io.BytesIO()
     img.save(buf)
     buf.seek(0)
-    return HttpResponse(buf.getvalue(), content_type="image/svg+xml")
+    response = HttpResponse(buf.getvalue(), content_type="image/svg+xml")
+    response["Cache-Control"] = "no-store"
+    return response
 
 
 @require_GET
@@ -330,7 +376,9 @@ def qr_label(request, qr_id):
     url = _playback_url(request, qr_code)
     narrator_name = qr_code.recording.narrator.name if qr_code.recording else "Unknown"
     buf = generate_label_png(url, qr_code.book.title, narrator_name, password=qr_code.password or None)
-    return HttpResponse(buf.getvalue(), content_type="image/png")
+    response = HttpResponse(buf.getvalue(), content_type="image/png")
+    response["Cache-Control"] = "no-store"
+    return response
 
 
 @require_GET

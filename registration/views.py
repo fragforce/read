@@ -1,5 +1,7 @@
+from django.conf import settings
 from django.shortcuts import render, redirect
 from django.http import Http404
+from django.utils import timezone
 from django.views.decorators.http import require_http_methods, require_GET
 
 from books.models import Narrator
@@ -7,27 +9,63 @@ from .models import EventCode, InviteLink
 from .wordlist import generate_passphrase
 
 
+def _check_lockout(request, attempts_key, lockout_key):
+    lockout_until = request.session.get(lockout_key)
+    if lockout_until and timezone.now().timestamp() < lockout_until:
+        return True
+    if lockout_until:
+        request.session.pop(lockout_key, None)
+        request.session[attempts_key] = 0
+    return False
+
+
+def _record_failed_attempt(request, attempts_key, lockout_key, lockout_duration):
+    attempts = request.session.get(attempts_key, 0) + 1
+    request.session[attempts_key] = attempts
+    if attempts >= settings.LOGIN_MAX_ATTEMPTS:
+        request.session[lockout_key] = timezone.now().timestamp() + lockout_duration
+        return True
+    return False
+
+
+def _clear_lockout(request, attempts_key, lockout_key):
+    request.session.pop(attempts_key, None)
+    request.session.pop(lockout_key, None)
+
+
 @require_http_methods(["GET", "POST"])
 def register_event(request):
     error = None
 
-    if request.method == "POST":
-        code = request.POST.get("code", "").strip()
-        name = request.POST.get("name", "").strip()
-        email = request.POST.get("email", "").strip()
+    unlock_code = request.GET.get("unlock", "")
+    if unlock_code and settings.LOGIN_UNLOCK_CODE and unlock_code == settings.LOGIN_UNLOCK_CODE:
+        _clear_lockout(request, "event_reg_attempts", "event_reg_lockout")
 
-        event_code = EventCode.objects.filter(code=code).first()
-        if not event_code or not event_code.is_valid():
-            error = "Invalid or expired event code."
-        elif not name or not email:
-            error = "Name and email are required."
+    if request.method == "POST":
+        if _check_lockout(request, "event_reg_attempts", "event_reg_lockout"):
+            error = "Too many attempts. Please try again later."
         else:
-            passphrase = generate_passphrase()
-            narrator = Narrator.objects.create(
-                name=name, email=email, passphrase=passphrase, registered_via_event=event_code
-            )
-            request.session["narrator_id"] = str(narrator.id)
-            return redirect("registration:welcome")
+            code = request.POST.get("code", "").strip()
+            name = request.POST.get("name", "").strip()
+            email = request.POST.get("email", "").strip()
+
+            event_code = EventCode.objects.filter(code=code).first()
+            if not event_code or not event_code.is_valid():
+                locked_out = _record_failed_attempt(
+                    request, "event_reg_attempts", "event_reg_lockout",
+                    settings.EVENT_LOGIN_LOCKOUT_SECONDS,
+                )
+                error = "Too many attempts. Please try again later." if locked_out else "Invalid or expired event code."
+            elif not name or not email:
+                error = "Name and email are required."
+            else:
+                _clear_lockout(request, "event_reg_attempts", "event_reg_lockout")
+                passphrase = generate_passphrase()
+                narrator = Narrator.objects.create(
+                    name=name, email=email, passphrase=passphrase, registered_via_event=event_code
+                )
+                request.session["narrator_id"] = str(narrator.id)
+                return redirect("registration:welcome")
 
     return render(request, "registration/event.html", {"error": error})
 
@@ -61,13 +99,21 @@ def login(request):
     error = None
 
     if request.method == "POST":
-        passphrase = request.POST.get("passphrase", "").strip().lower()
-        narrator = Narrator.objects.filter(passphrase=passphrase).first()
-        if not narrator:
-            error = "Invalid passphrase."
+        if _check_lockout(request, "login_attempts", "login_lockout"):
+            error = "Too many attempts. Please try again later."
         else:
-            request.session["narrator_id"] = str(narrator.id)
-            return redirect("registration:welcome")
+            passphrase = request.POST.get("passphrase", "").strip().lower()
+            narrator = Narrator.objects.filter(passphrase=passphrase).first()
+            if not narrator:
+                locked_out = _record_failed_attempt(
+                    request, "login_attempts", "login_lockout",
+                    settings.LOGIN_LOCKOUT_SECONDS,
+                )
+                error = "Too many attempts. Please try again later." if locked_out else "Invalid passphrase."
+            else:
+                _clear_lockout(request, "login_attempts", "login_lockout")
+                request.session["narrator_id"] = str(narrator.id)
+                return redirect("registration:welcome")
 
     return render(request, "registration/login.html", {"error": error})
 
