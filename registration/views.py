@@ -37,39 +37,45 @@ def _clear_lockout(request, attempts_key, lockout_key):
     request.session.pop(lockout_key, None)
 
 
+def _handle_event_registration(request):
+    if _check_lockout(request, "event_reg_attempts", "event_reg_lockout"):
+        return RATE_LIMIT_MESSAGE
+
+    code = request.POST.get("code", "").strip()
+    name = request.POST.get("name", "").strip()
+    email = request.POST.get("email", "").strip()
+
+    event_code = EventCode.objects.filter(code=code).first()
+    if not event_code or not event_code.is_valid():
+        locked_out = _record_failed_attempt(
+            request, "event_reg_attempts", "event_reg_lockout",
+            settings.EVENT_LOGIN_LOCKOUT_SECONDS,
+        )
+        return RATE_LIMIT_MESSAGE if locked_out else "Invalid or expired event code."
+
+    if not name or not email:
+        return "Name and email are required."
+
+    _clear_lockout(request, "event_reg_attempts", "event_reg_lockout")
+    passphrase = generate_passphrase()
+    narrator = Narrator.objects.create(
+        name=name, email=email, passphrase=passphrase, registered_via_event=event_code
+    )
+    request.session["narrator_id"] = str(narrator.id)
+    return None
+
+
 @require_http_methods(["GET", "POST"])
 def register_event(request):
-    error = None
-
     unlock_code = request.GET.get("unlock", "")
     if unlock_code and settings.LOGIN_UNLOCK_CODE and unlock_code == settings.LOGIN_UNLOCK_CODE:
         _clear_lockout(request, "event_reg_attempts", "event_reg_lockout")
 
+    error = None
     if request.method == "POST":
-        if _check_lockout(request, "event_reg_attempts", "event_reg_lockout"):
-            error = RATE_LIMIT_MESSAGE
-        else:
-            code = request.POST.get("code", "").strip()
-            name = request.POST.get("name", "").strip()
-            email = request.POST.get("email", "").strip()
-
-            event_code = EventCode.objects.filter(code=code).first()
-            if not event_code or not event_code.is_valid():
-                locked_out = _record_failed_attempt(
-                    request, "event_reg_attempts", "event_reg_lockout",
-                    settings.EVENT_LOGIN_LOCKOUT_SECONDS,
-                )
-                error = RATE_LIMIT_MESSAGE if locked_out else "Invalid or expired event code."
-            elif not name or not email:
-                error = "Name and email are required."
-            else:
-                _clear_lockout(request, "event_reg_attempts", "event_reg_lockout")
-                passphrase = generate_passphrase()
-                narrator = Narrator.objects.create(
-                    name=name, email=email, passphrase=passphrase, registered_via_event=event_code
-                )
-                request.session["narrator_id"] = str(narrator.id)
-                return redirect(WELCOME_URL)
+        error = _handle_event_registration(request)
+        if error is None:
+            return redirect(WELCOME_URL)
 
     return render(request, "registration/event.html", {"error": error})
 
