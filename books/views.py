@@ -191,6 +191,8 @@ def upload_recording(request, book_id):
     attestation_text = request.POST.get("attestation_text", "").strip()
     if not attestation_text:
         return JsonResponse({"error": "Attestation is required."}, status=400)
+    if len(attestation_text) > 2000:
+        return JsonResponse({"error": "Attestation text is too long."}, status=400)
 
     try:
         recording = Recording.objects.create(
