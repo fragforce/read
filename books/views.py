@@ -308,9 +308,11 @@ def serve_recording(request, recording_id):
             end = min(end, file_size - 1)
             length = end - start + 1
 
-            f = open(path, "rb")
-            f.seek(start)
-            response = FileResponse(f, content_type=content_type, status=206)
+            with open(path, "rb") as f:
+                f.seek(start)
+                data = f.read(length)
+
+            response = HttpResponse(data, content_type=content_type, status=206)
             response["Content-Length"] = length
             response["Content-Range"] = f"bytes {start}-{end}/{file_size}"
             response["Accept-Ranges"] = "bytes"
