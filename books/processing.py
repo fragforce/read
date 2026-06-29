@@ -103,14 +103,20 @@ def spawn_remux(recording_id):
 
 
 def recover_pending_recordings():
+    from django.db import OperationalError, ProgrammingError
+
     from .models import Recording, RecordingStatus
 
     ensure_directories()
 
-    stuck = Recording.objects.filter(
-        status__in=[RecordingStatus.PENDING, RecordingStatus.PROCESSING]
-    )
-    count = stuck.count()
+    try:
+        stuck = Recording.objects.filter(
+            status__in=[RecordingStatus.PENDING, RecordingStatus.PROCESSING]
+        )
+        count = stuck.count()
+    except (OperationalError, ProgrammingError):
+        return
+
     if count:
         logger.info("Recovering %d stuck recordings for remuxing", count)
 

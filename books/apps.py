@@ -11,7 +11,7 @@ class BooksConfig(AppConfig):
 
     def ready(self):
 
-        if any(cmd in sys.argv for cmd in ["migrate", "collectstatic", "makemigrations", "createsuperuser"]):
+        if any(cmd in sys.argv for cmd in ["migrate", "collectstatic", "makemigrations", "createsuperuser", "check"]):
             return
 
         if os.environ.get("RUN_MAIN") == "true" or "runserver" not in sys.argv:
