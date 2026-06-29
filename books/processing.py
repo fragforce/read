@@ -15,6 +15,26 @@ def ensure_directories():
         os.makedirs(os.path.join(settings.MEDIA_ROOT, subdir), exist_ok=True)
 
 
+def _safe_remove(path):
+    if os.path.exists(path):
+        try:
+            os.remove(path)
+        except OSError:
+            pass
+
+
+def _create_qr_for_recording(recording_id):
+    from .models import QRCode, Recording
+
+    recording = Recording.objects.select_related("book", "narrator").get(id=recording_id)
+    if not QRCode.objects.filter(book=recording.book, recording=recording).exists():
+        QRCode.objects.create(
+            book=recording.book,
+            recording=recording,
+            label_text=f"{recording.book.title} - {recording.narrator.name}",
+        )
+
+
 def remux_recording(recording_id):
     from .models import Recording, RecordingStatus
 
@@ -56,37 +76,17 @@ def remux_recording(recording_id):
 
     except Exception:
         logger.exception("Failed to remux recording %s", recording_id)
-        if os.path.exists(finalized_path):
-            try:
-                os.remove(finalized_path)
-            except OSError:
-                pass
+        _safe_remove(finalized_path)
+        _safe_remove(processing_path)
         Recording.objects.filter(id=recording_id).update(status=RecordingStatus.FAILED)
-        if os.path.exists(processing_path):
-            try:
-                os.remove(processing_path)
-            except OSError:
-                pass
         return
 
-    if os.path.exists(processing_path):
-        try:
-            os.remove(processing_path)
-        except OSError:
-            pass
+    _safe_remove(processing_path)
     Recording.objects.filter(id=recording_id).update(status=RecordingStatus.READY)
     logger.info("Recording %s remuxed successfully", recording_id)
 
     try:
-        from .models import QRCode
-
-        recording = Recording.objects.select_related("book", "narrator").get(id=recording_id)
-        if not QRCode.objects.filter(book=recording.book, recording=recording).exists():
-            QRCode.objects.create(
-                book=recording.book,
-                recording=recording,
-                label_text=f"{recording.book.title} - {recording.narrator.name}",
-            )
+        _create_qr_for_recording(recording_id)
     except Exception:
         logger.exception("Failed to create QR code record for recording %s", recording_id)
 
