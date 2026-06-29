@@ -47,9 +47,14 @@ These are commitments made in the publisher permission letter.
 
 ## Development
 
-Built with Django, deployed as Docker containers. Consistent with fragforce.org and existing Fragforce infrastructure patterns.
+Built with Django 6.0, Python 3.13, deployed as Docker containers.
 
-See [REQUIREMENTS.md](REQUIREMENTS.md) for full technical requirements.
+```bash
+docker compose up -d          # start dev server
+docker compose run --rm test  # run tests
+```
+
+See [DEVELOPMENT.md](DEVELOPMENT.md) for full setup and workflow documentation, and [REQUIREMENTS.md](REQUIREMENTS.md) for technical requirements.
 
 ## Timeline
 
