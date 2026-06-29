@@ -1,0 +1,6 @@
+/.github/ @fragforce/web-team
+/Dockerfile @fragforce/web-team
+/compose.yaml @fragforce/web-team
+/sonar-project.properties @fragforce/web-team
+/pyproject.toml @fragforce/web-team
+/uv.lock @fragforce/web-team
