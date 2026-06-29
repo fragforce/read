@@ -310,7 +310,9 @@ def qr_png(request, qr_id):
     buf = io.BytesIO()
     img.save(buf, format="PNG")
     buf.seek(0)
-    return HttpResponse(buf.getvalue(), content_type="image/png")
+    response = HttpResponse(buf.getvalue(), content_type="image/png")
+    response["Cache-Control"] = "no-store"
+    return response
 
 
 @require_GET
@@ -321,7 +323,9 @@ def qr_svg(request, qr_id):
     buf = io.BytesIO()
     img.save(buf)
     buf.seek(0)
-    return HttpResponse(buf.getvalue(), content_type="image/svg+xml")
+    response = HttpResponse(buf.getvalue(), content_type="image/svg+xml")
+    response["Cache-Control"] = "no-store"
+    return response
 
 
 @require_GET
@@ -330,7 +334,9 @@ def qr_label(request, qr_id):
     url = _playback_url(request, qr_code)
     narrator_name = qr_code.recording.narrator.name if qr_code.recording else "Unknown"
     buf = generate_label_png(url, qr_code.book.title, narrator_name, password=qr_code.password or None)
-    return HttpResponse(buf.getvalue(), content_type="image/png")
+    response = HttpResponse(buf.getvalue(), content_type="image/png")
+    response["Cache-Control"] = "no-store"
+    return response
 
 
 @require_GET
