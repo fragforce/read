@@ -3,6 +3,7 @@ import logging
 import os
 import re
 
+from django.conf import settings
 from django.db.models import Count
 from django.http import FileResponse, Http404, HttpResponse, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
@@ -184,6 +185,8 @@ def upload_recording(request, book_id):
 
     duration = request.POST.get("duration")
     duration_seconds = int(float(duration)) if duration else None
+    if duration_seconds is not None and (duration_seconds <= 0 or duration_seconds > settings.RECORDING_MAX_DURATION_SECONDS):
+        return JsonResponse({"error": "Recording duration is out of bounds."}, status=400)
 
     attestation_text = request.POST.get("attestation_text", "").strip()
     if not attestation_text:
