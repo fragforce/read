@@ -54,6 +54,9 @@
             <h3>Flagged for Admin Review</h3>
             <p>{{ recording.flag_reason }}</p>
         </div>
+        <p class="mt-1">
+            <a href="{% url 'portal:preflight' book_id=recording.book.id %}" class="btn btn-primary">Re-record this book</a>
+        </p>
     </div>
     {% else %}
     <div class="section">
