@@ -17,6 +17,9 @@ jobs:
       pull-requests: write
 
     steps:
+      # S7631: This checks out fork code in a privileged context, but no user code
+      # is executed - only passed to SonarCloud for static analysis. Artifact data
+      # is sanitized below. The SONAR_TOKEN only grants SonarCloud API access.
       - name: Checkout PR code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:

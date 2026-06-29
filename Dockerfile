@@ -18,7 +18,7 @@ RUN uv sync --frozen --no-dev
 
 COPY . .
 
-RUN SECRET_KEY=build DATABASE_URL=sqlite:///dev/null uv run python manage.py collectstatic --noinput
+RUN SECRET_KEY=build DATABASE_URL=sqlite:///dev/null uv run --frozen python manage.py collectstatic --noinput
 
 RUN mkdir -p /app/media/recordings /app/media/processing /app/media/finalized \
     && chown -R app:app /app
@@ -26,4 +26,4 @@ USER app
 
 EXPOSE 8000
 
-CMD ["uv", "run", "gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000"]
+CMD ["uv", "run", "--frozen", "gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000"]

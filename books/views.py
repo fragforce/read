@@ -36,7 +36,7 @@ def playback(request, book_id, recording_id=None):
 
     password_required = book.qr_codes.exclude(password="").exists()
     password_valid = False
-    password_error = None
+    auth_error = None
 
     if password_required:
         if request.session.get(f"book_{book_id}_unlocked"):
@@ -47,7 +47,7 @@ def playback(request, book_id, recording_id=None):
             lockout_until = request.session.get(lockout_key)
 
             if lockout_until and timezone.now().timestamp() < lockout_until:
-                password_error = "Too many attempts. Please try again later."
+                auth_error = "Too many attempts. Please try again later."
             else:
                 if lockout_until:
                     request.session.pop(lockout_key, None)
@@ -65,9 +65,9 @@ def playback(request, book_id, recording_id=None):
                         request.session[attempts_key] = attempts
                         if attempts >= 5:
                             request.session[lockout_key] = timezone.now().timestamp() + 300
-                            password_error = "Too many attempts. Please try again later."
+                            auth_error = "Too many attempts. Please try again later."
                         else:
-                            password_error = "Incorrect password."
+                            auth_error = "Incorrect password."
     else:
         password_valid = True
 
@@ -76,7 +76,7 @@ def playback(request, book_id, recording_id=None):
         "recording": recording,
         "password_required": password_required,
         "password_valid": password_valid,
-        "password_error": password_error,
+        "auth_error": auth_error,
     })
 
 
@@ -213,7 +213,7 @@ def upload_recording(request, book_id):
             attestation_text=attestation_text,
         )
     except Exception:
-        logger.exception("Failed to save recording for book=%s narrator=%s", book_id, narrator.id)
+        logger.exception("Failed to save recording for book=%r narrator=%s", book_id, narrator.id)
         return JsonResponse({
             "error": "Something went wrong saving your recording. Please let an admin know."
         }, status=500)

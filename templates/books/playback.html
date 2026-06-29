@@ -12,8 +12,8 @@
     </div>
 
     {% if password_required and not password_valid %}
-    {% if password_error %}
-    <p class="error">{{ password_error }}</p>
+    {% if auth_error %}
+    <p class="error">{{ auth_error }}</p>
     {% endif %}
     <form method="post" class="password-form">
         {% csrf_token %}
