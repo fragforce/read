@@ -4,7 +4,7 @@ import os
 import re
 
 from django.conf import settings
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.http import FileResponse, Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -108,7 +108,7 @@ def dashboard(request):
 
     available_books = (
         Book.objects.exclude(id__in=unflagged_book_ids)
-        .annotate(recording_count=Count("recordings"))
+        .annotate(recording_count=Count("recordings", filter=Q(recordings__flagged_for_review=False)))
     )
 
     books_with_availability = []
@@ -219,6 +219,10 @@ def upload_recording(request, book_id):
         return JsonResponse({
             "error": "Something went wrong saving your recording. Please let an admin know."
         }, status=500)
+
+    Recording.objects.filter(
+        book=book, narrator=narrator, flagged_for_review=True
+    ).exclude(id=recording.id).delete()
 
     spawn_remux(recording.id)
 

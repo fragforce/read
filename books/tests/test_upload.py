@@ -142,6 +142,22 @@ class UploadRecordingTest(TestCase):
         assert recording.duration_seconds == 120
         assert Attestation.objects.filter(recording=recording).exists()
 
+    def test_reupload_deletes_flagged_recording(self):
+        from books.models import RecordingStatus
+
+        flagged = Recording.objects.create(
+            book=self.book, narrator=self.narrator, status=RecordingStatus.READY,
+            flagged_for_review=True, flag_reason="Bad audio",
+        )
+        audio = SimpleUploadedFile("test.webm", b"fake audio", content_type="audio/webm")
+        resp = self.client.post(
+            f"/portal/upload/{self.book.id}/",
+            {"audio": audio, "duration": "90", "attestation_text": "I attest again"},
+        )
+        assert resp.status_code == 200
+        assert not Recording.objects.filter(id=flagged.id).exists()
+        assert Recording.objects.filter(book=self.book, narrator=self.narrator).count() == 1
+
     def test_upload_requires_login(self):
         client = Client()
         audio = SimpleUploadedFile("test.webm", b"fake audio", content_type="audio/webm")
