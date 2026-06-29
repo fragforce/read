@@ -23,6 +23,9 @@ PRIVATE_NETWORKS = (
 
 @require_GET
 def healthz(request):
+    if request.META.get("HTTP_X_FORWARDED_PROTO"):
+        raise Http404
+
     ip = ipaddress.ip_address(request.META["REMOTE_ADDR"])
     if not any(ip in net for net in PRIVATE_NETWORKS):
         raise Http404
