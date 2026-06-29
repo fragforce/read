@@ -18,6 +18,39 @@ from .qr import generate_label_png, generate_qr_png, generate_qr_svg
 logger = logging.getLogger(__name__)
 
 
+def _check_playback_password(request, book, book_id):
+    if request.session.get(f"book_{book_id}_unlocked"):
+        return True, None
+
+    attempts_key = f"book_{book_id}_pw_attempts"
+    lockout_key = f"book_{book_id}_pw_lockout"
+    lockout_until = request.session.get(lockout_key)
+
+    if lockout_until and timezone.now().timestamp() < lockout_until:
+        return False, "Too many attempts. Please try again later."
+
+    if lockout_until:
+        request.session.pop(lockout_key, None)
+        request.session[attempts_key] = 0
+
+    submitted = request.POST.get("password", "").strip().lower()
+    if not submitted:
+        return False, None
+
+    if book.qr_codes.filter(password=submitted).exists():
+        request.session[f"book_{book_id}_unlocked"] = True
+        request.session.pop(attempts_key, None)
+        request.session.pop(lockout_key, None)
+        return True, None
+
+    attempts = request.session.get(attempts_key, 0) + 1
+    request.session[attempts_key] = attempts
+    if attempts >= 5:
+        request.session[lockout_key] = timezone.now().timestamp() + 300
+        return False, "Too many attempts. Please try again later."
+    return False, "Incorrect password."
+
+
 @require_http_methods(["GET", "POST"])
 def playback(request, book_id, recording_id=None):
     book = get_object_or_404(Book, id=book_id)
@@ -35,41 +68,10 @@ def playback(request, book_id, recording_id=None):
             raise Http404("No recordings available for this book.")
 
     password_required = book.qr_codes.exclude(password="").exists()
-    password_valid = False
-    auth_error = None
-
     if password_required:
-        if request.session.get(f"book_{book_id}_unlocked"):
-            password_valid = True
-        else:
-            attempts_key = f"book_{book_id}_pw_attempts"
-            lockout_key = f"book_{book_id}_pw_lockout"
-            lockout_until = request.session.get(lockout_key)
-
-            if lockout_until and timezone.now().timestamp() < lockout_until:
-                auth_error = "Too many attempts. Please try again later."
-            else:
-                if lockout_until:
-                    request.session.pop(lockout_key, None)
-                    request.session[attempts_key] = 0
-
-                submitted = request.POST.get("password", "").strip().lower()
-                if submitted:
-                    if book.qr_codes.filter(password=submitted).exists():
-                        password_valid = True
-                        request.session[f"book_{book_id}_unlocked"] = True
-                        request.session.pop(attempts_key, None)
-                        request.session.pop(lockout_key, None)
-                    else:
-                        attempts = request.session.get(attempts_key, 0) + 1
-                        request.session[attempts_key] = attempts
-                        if attempts >= 5:
-                            request.session[lockout_key] = timezone.now().timestamp() + 300
-                            auth_error = "Too many attempts. Please try again later."
-                        else:
-                            auth_error = "Incorrect password."
+        password_valid, auth_error = _check_playback_password(request, book, book_id)
     else:
-        password_valid = True
+        password_valid, auth_error = True, None
 
     return render(request, "books/playback.html", {
         "book": book,
