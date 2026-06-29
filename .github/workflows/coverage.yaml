@@ -1,0 +1,91 @@
+name: Coverage
+
+on:
+  push:
+    branches:
+      - dev
+      - master
+  pull_request:
+
+jobs:
+  coverage:
+    name: Lint and test with coverage
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    services:
+      postgres:
+        image: postgres:18.3
+        env:
+          POSTGRES_DB: fragforce_read_test
+          POSTGRES_PASSWORD: insecure
+          POSTGRES_HOST_AUTH_METHOD: trust
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@bd01e18f51369d5a26f1651c3cb451f3063e4665 # v6
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
+        with:
+          python-version: '3.13'
+
+      - name: Install dependencies
+        run: uv sync --extra dev
+
+      - name: Lint with ruff
+        run: uv run ruff check .
+
+      - name: Django system check
+        env:
+          DATABASE_URL: postgres://postgres:insecure@localhost/fragforce_read_test
+          SECRET_KEY: insecure-test-key-not-used-in-production
+        run: uv run python manage.py check
+
+      - name: Run tests with coverage
+        continue-on-error: true
+        env:
+          DATABASE_URL: postgres://postgres:insecure@localhost/fragforce_read_test
+          SECRET_KEY: insecure-test-key-not-used-in-production
+        run: |
+          uv run coverage run -m pytest --junitxml=TEST-results.xml
+          uv run coverage xml
+
+      - name: Save PR metadata
+        env:
+          PR_NUMBER: ${{ github.event_name == 'pull_request' && github.event.number || '' }}
+          COMMIT_SHA: ${{ github.sha }}
+          BASE_REF: ${{ github.base_ref }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          echo "$PR_NUMBER" > pr_number.txt
+          echo "$COMMIT_SHA" > pr_sha.txt
+          echo "$BASE_REF" > pr_base_ref.txt
+          echo "$REF_NAME" > branch_name.txt
+
+      - name: Upload coverage and test artifacts
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: coverage-report
+          path: |
+            coverage.xml
+            TEST-*.xml
+            pr_number.txt
+            pr_sha.txt
+            pr_base_ref.txt
+            branch_name.txt
+          retention-days: 1
