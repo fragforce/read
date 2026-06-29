@@ -7,6 +7,7 @@ from django.db.models import Count
 from django.http import FileResponse, Http404, HttpResponse, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
+from django.utils import timezone
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 logger = logging.getLogger(__name__)
@@ -19,6 +20,9 @@ from .qr import generate_label_png, generate_qr_png, generate_qr_svg
 @require_http_methods(["GET", "POST"])
 def playback(request, book_id, recording_id=None):
     book = get_object_or_404(Book, id=book_id)
+
+    if book.license_expiry and book.license_expiry < timezone.now().date():
+        return render(request, "books/playback_expired.html", {"book": book})
 
     if recording_id:
         recording = get_object_or_404(
@@ -248,7 +252,11 @@ def profile(request):
 
 @require_GET
 def serve_recording(request, recording_id):
-    recording = get_object_or_404(Recording, id=recording_id)
+    recording = get_object_or_404(Recording.objects.select_related("book"), id=recording_id)
+
+    book = recording.book
+    if book.license_expiry and book.license_expiry < timezone.now().date():
+        raise Http404
 
     if recording.status == RecordingStatus.READY:
         path = recording.finalized_path
