@@ -10,6 +10,8 @@ class BooksConfig(AppConfig):
     name = "books"
 
     def ready(self):
+        import books.signals  # noqa: F401
+
         if not self._should_recover():
             return
 
