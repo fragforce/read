@@ -9,6 +9,9 @@ from books.models import Narrator
 from .models import EventCode, InviteLink
 from .wordlist import generate_passphrase
 
+RATE_LIMIT_MESSAGE = "Too many attempts. Please try again later."
+WELCOME_URL = "registration:welcome"
+
 
 def _check_lockout(request, attempts_key, lockout_key):
     lockout_until = request.session.get(lockout_key)
@@ -44,7 +47,7 @@ def register_event(request):
 
     if request.method == "POST":
         if _check_lockout(request, "event_reg_attempts", "event_reg_lockout"):
-            error = "Too many attempts. Please try again later."
+            error = RATE_LIMIT_MESSAGE
         else:
             code = request.POST.get("code", "").strip()
             name = request.POST.get("name", "").strip()
@@ -56,7 +59,7 @@ def register_event(request):
                     request, "event_reg_attempts", "event_reg_lockout",
                     settings.EVENT_LOGIN_LOCKOUT_SECONDS,
                 )
-                error = "Too many attempts. Please try again later." if locked_out else "Invalid or expired event code."
+                error = RATE_LIMIT_MESSAGE if locked_out else "Invalid or expired event code."
             elif not name or not email:
                 error = "Name and email are required."
             else:
@@ -66,7 +69,7 @@ def register_event(request):
                     name=name, email=email, passphrase=passphrase, registered_via_event=event_code
                 )
                 request.session["narrator_id"] = str(narrator.id)
-                return redirect("registration:welcome")
+                return redirect(WELCOME_URL)
 
     return render(request, "registration/event.html", {"error": error})
 
@@ -90,7 +93,7 @@ def register_invite(request, token):
             narrator = Narrator.objects.create(name=name, email=email, passphrase=passphrase)
             invite.mark_used(narrator)
             request.session["narrator_id"] = str(narrator.id)
-            return redirect("registration:welcome")
+            return redirect(WELCOME_URL)
 
     return render(request, "registration/invite.html", {"invite": invite, "error": error})
 
@@ -101,7 +104,7 @@ def login(request):
 
     if request.method == "POST":
         if _check_lockout(request, "login_attempts", "login_lockout"):
-            error = "Too many attempts. Please try again later."
+            error = RATE_LIMIT_MESSAGE
         else:
             passphrase = request.POST.get("passphrase", "").strip().lower()
             narrator = Narrator.objects.filter(passphrase=passphrase).first()
@@ -110,11 +113,11 @@ def login(request):
                     request, "login_attempts", "login_lockout",
                     settings.LOGIN_LOCKOUT_SECONDS,
                 )
-                error = "Too many attempts. Please try again later." if locked_out else "Invalid passphrase."
+                error = RATE_LIMIT_MESSAGE if locked_out else "Invalid passphrase."
             else:
                 _clear_lockout(request, "login_attempts", "login_lockout")
                 request.session["narrator_id"] = str(narrator.id)
-                return redirect("registration:welcome")
+                return redirect(WELCOME_URL)
 
     return render(request, "registration/login.html", {"error": error})
 
@@ -125,7 +128,7 @@ def login_with_passphrase(request, passphrase):
     if not narrator:
         return render(request, "registration/login.html", {"error": "Invalid passphrase."})
     request.session["narrator_id"] = str(narrator.id)
-    return redirect("registration:welcome")
+    return redirect(WELCOME_URL)
 
 
 @require_GET
