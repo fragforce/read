@@ -183,6 +183,9 @@ def upload_recording(request, book_id):
     if audio_file.content_type not in ("audio/webm", "audio/ogg", "audio/mp4", "audio/wav"):
         return JsonResponse({"error": "Unsupported audio format."}, status=400)
 
+    if audio_file.size > settings.FILE_UPLOAD_MAX_MEMORY_SIZE:
+        return JsonResponse({"error": "Audio file is too large."}, status=400)
+
     duration = request.POST.get("duration")
     duration_seconds = int(float(duration)) if duration else None
     if duration_seconds is not None and (duration_seconds <= 0 or duration_seconds > settings.RECORDING_MAX_DURATION_SECONDS):
