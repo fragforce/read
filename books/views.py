@@ -35,15 +35,38 @@ def playback(request, book_id, recording_id=None):
 
     password_required = book.qr_codes.exclude(password="").exists()
     password_valid = False
+    password_error = None
 
     if password_required:
         if request.session.get(f"book_{book_id}_unlocked"):
             password_valid = True
         else:
-            submitted = request.POST.get("password", "").strip().lower()
-            if submitted and book.qr_codes.filter(password=submitted).exists():
-                password_valid = True
-                request.session[f"book_{book_id}_unlocked"] = True
+            attempts_key = f"book_{book_id}_pw_attempts"
+            lockout_key = f"book_{book_id}_pw_lockout"
+            lockout_until = request.session.get(lockout_key)
+
+            if lockout_until and timezone.now().timestamp() < lockout_until:
+                password_error = "Too many attempts. Please try again later."
+            else:
+                if lockout_until:
+                    request.session.pop(lockout_key, None)
+                    request.session[attempts_key] = 0
+
+                submitted = request.POST.get("password", "").strip().lower()
+                if submitted:
+                    if book.qr_codes.filter(password=submitted).exists():
+                        password_valid = True
+                        request.session[f"book_{book_id}_unlocked"] = True
+                        request.session.pop(attempts_key, None)
+                        request.session.pop(lockout_key, None)
+                    else:
+                        attempts = request.session.get(attempts_key, 0) + 1
+                        request.session[attempts_key] = attempts
+                        if attempts >= 5:
+                            request.session[lockout_key] = timezone.now().timestamp() + 300
+                            password_error = "Too many attempts. Please try again later."
+                        else:
+                            password_error = "Incorrect password."
     else:
         password_valid = True
 
@@ -52,6 +75,7 @@ def playback(request, book_id, recording_id=None):
         "recording": recording,
         "password_required": password_required,
         "password_valid": password_valid,
+        "password_error": password_error,
     })
 
 
