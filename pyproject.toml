@@ -31,4 +31,5 @@ select = ["E", "F", "I", "N", "W"]
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "config.settings"
-python_files = ["tests.py", "test_*.py"]
+python_files = ["test_*.py"]
+testpaths = ["books/tests", "registration/tests", "tests"]
