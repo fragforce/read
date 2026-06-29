@@ -6,16 +6,16 @@ import re
 from django.conf import settings
 from django.db.models import Count
 from django.http import FileResponse, Http404, HttpResponse, JsonResponse
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
-logger = logging.getLogger(__name__)
-
 from .models import Attestation, Book, Narrator, QRCode, Recording, RecordingStatus
 from .processing import spawn_remux
 from .qr import generate_label_png, generate_qr_png, generate_qr_svg
+
+logger = logging.getLogger(__name__)
 
 
 @require_http_methods(["GET", "POST"])
@@ -188,7 +188,8 @@ def upload_recording(request, book_id):
 
     duration = request.POST.get("duration")
     duration_seconds = int(float(duration)) if duration else None
-    if duration_seconds is not None and (duration_seconds <= 0 or duration_seconds > settings.RECORDING_MAX_DURATION_SECONDS):
+    max_duration = settings.RECORDING_MAX_DURATION_SECONDS
+    if duration_seconds is not None and (duration_seconds <= 0 or duration_seconds > max_duration):
         return JsonResponse({"error": "Recording duration is out of bounds."}, status=400)
 
     attestation_text = request.POST.get("attestation_text", "").strip()
@@ -338,7 +339,10 @@ def _playback_url(request, qr_code):
 def qr_redirect(request, short_code):
     qr_code = get_object_or_404(QRCode.objects.select_related("book", "recording"), short_code=short_code)
     if qr_code.recording:
-        url = reverse("books:playback_specific", kwargs={"book_id": qr_code.book_id, "recording_id": qr_code.recording_id})
+        url = reverse(
+            "books:playback_specific",
+            kwargs={"book_id": qr_code.book_id, "recording_id": qr_code.recording_id},
+        )
     else:
         url = reverse("books:playback", kwargs={"book_id": qr_code.book_id})
     return redirect(url)

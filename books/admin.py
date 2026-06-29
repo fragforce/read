@@ -1,9 +1,8 @@
 from django.contrib import admin
 from django.http import HttpResponseRedirect
-from django.urls import path
 from django.utils.html import format_html
 
-from .models import Book, Narrator, Recording, QRCode, Attestation
+from .models import Attestation, Book, Narrator, QRCode, Recording
 
 
 @admin.register(Book)
@@ -104,7 +103,10 @@ class QRCodeAdmin(admin.ModelAdmin):
         png_url = f"/b/qr/{obj.id}.png"
         svg_url = f"/b/qr/{obj.id}.svg"
         label_url = f"/b/qr/{obj.id}/label.png"
-        return format_html('<a href="{}">PNG</a> | <a href="{}">SVG</a> | <a href="{}">Label</a>', png_url, svg_url, label_url)
+        return format_html(
+            '<a href="{}">PNG</a> | <a href="{}">SVG</a> | <a href="{}">Label</a>',
+            png_url, svg_url, label_url,
+        )
 
 
 @admin.register(Attestation)

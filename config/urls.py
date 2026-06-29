@@ -5,7 +5,7 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.db import connection
 from django.http import Http404, JsonResponse
-from django.urls import path, include
+from django.urls import include, path
 from django.views.decorators.http import require_GET
 from django.views.generic import TemplateView
 

@@ -10,7 +10,6 @@ class BooksConfig(AppConfig):
     name = "books"
 
     def ready(self):
-        import books.signals
 
         if any(cmd in sys.argv for cmd in ["migrate", "collectstatic", "makemigrations", "createsuperuser"]):
             return

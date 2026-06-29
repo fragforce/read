@@ -14,15 +14,17 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
+    "coverage>=7.0",
     "django-debug-toolbar>=5.0",
-    "ruff>=0.11",
     "pytest>=8.0",
     "pytest-django>=4.9",
+    "ruff>=0.11",
 ]
 
 [tool.ruff]
 target-version = "py313"
 line-length = 120
+extend-exclude = ["*/migrations/*"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W"]
