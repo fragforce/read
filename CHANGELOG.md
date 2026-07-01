@@ -5,6 +5,11 @@ All notable changes to Fragforce Reads will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.3] - 2026-07-01
+
+### Fixed
+- Release workflow now uses fragforce-automation app token instead of GITHUB_TOKEN. Events triggered by GITHUB_TOKEN [will not create new workflow runs](https://docs.github.com/en/actions/security-guides/automatic-token-authentication#using-the-github_token-in-a-workflow) to prevent recursive workflows, which prevented the prod image workflow from triggering on release events.
+
 ## [1.0.2] - 2026-07-01
 
 ### Fixed
@@ -113,6 +118,7 @@ Initial MVP release of Fragforce Reads - an audio playback service for the VTO B
 - HTML accessibility and CSS deprecation warnings
 - Cognitive complexity in views (SonarCloud)
 
-[1.0.2]: https://github.com/fragforce/read/releases/tag/v1.0.2
-[1.0.1]: https://github.com/fragforce/read/releases/tag/v1.0.1
 [1.0.0]: https://github.com/fragforce/read/releases/tag/v1.0.0
+[1.0.1]: https://github.com/fragforce/read/releases/tag/v1.0.1
+[1.0.2]: https://github.com/fragforce/read/releases/tag/v1.0.2
+[1.0.3]: https://github.com/fragforce/read/releases/tag/v1.0.3
