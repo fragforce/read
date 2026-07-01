@@ -73,7 +73,17 @@ class QRCodeModelTest(TestCase):
         assert len(code) == 8
 
     def test_generate_qr_password_format(self):
+        from registration.wordlist import WORDS
+
         pw = generate_qr_password()
         parts = pw.split("-")
         assert len(parts) == 3
-        assert len(parts[0]) == 4
+
+        # First two parts should be words from the wordlist (lowercased)
+        wordlist_lower = [w.lower() for w in WORDS]
+        assert parts[0] in wordlist_lower
+        assert parts[1] in wordlist_lower
+
+        # Last part should be exactly 2 digits
+        assert parts[2].isdigit()
+        assert len(parts[2]) == 2
