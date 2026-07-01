@@ -126,10 +126,10 @@ def generate_qr_short_code():
 def generate_qr_password():
     from registration.wordlist import WORDS
 
-    pin = "".join(secrets.choice(QR_CODE_ALPHABET) for _ in range(4))
     word1 = secrets.choice(WORDS).lower()
     word2 = secrets.choice(WORDS).lower()
-    return f"{pin}-{word1}-{word2}"
+    digits = "".join(secrets.choice("0123456789") for _ in range(2))
+    return f"{word1}-{word2}-{digits}"
 
 
 class QRCode(models.Model):
