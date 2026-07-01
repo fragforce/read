@@ -115,6 +115,18 @@ class PlaybackViewTest(TestCase):
         assert resp.status_code == 200
         assert b"audio-player" in resp.content
 
+    def test_narrator_shown_before_password_entry(self):
+        recording = Recording.objects.create(
+            book=self.book, narrator=self.narrator, status=RecordingStatus.READY
+        )
+        QRCode.objects.create(
+            book=self.book, recording=recording, label_text="test", password="secret"
+        )
+        resp = self.client.get(f"/b/play/{self.book.id}/")
+        assert resp.status_code == 200
+        assert b"Read by: Play User" in resp.content
+        assert b"audio-player" not in resp.content
+
     def test_session_unlock_persists(self):
         recording = Recording.objects.create(
             book=self.book, narrator=self.narrator, status=RecordingStatus.READY

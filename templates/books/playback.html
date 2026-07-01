@@ -9,6 +9,7 @@
         <p>by {{ book.author }}</p>
         {% if book.illustrator %}<p>Illustrated by: {{ book.illustrator }}</p>{% endif %}
         {% if not book.public_domain and book.publisher %}<p>Published by: {{ book.publisher }}</p>{% endif %}
+        <p class="narrator">Read by: {{ recording.narrator.name }}</p>
     </div>
 
     {% if password_required and not password_valid %}
@@ -22,7 +23,6 @@
         <button type="submit" class="btn btn-primary">Unlock</button>
     </form>
     {% elif password_valid %}
-    <p class="narrator">As read by: {{ recording.narrator.name }}</p>
     <audio id="audio-player" controls>
         <source src="{% url 'books:serve_recording' recording_id=recording.id %}" type="audio/webm">
         <p>Sorry, your browser does not support audio playback.</p>
