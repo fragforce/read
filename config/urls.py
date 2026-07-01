@@ -33,8 +33,8 @@ def healthz(request):
     try:
         connection.ensure_connection()
         return JsonResponse({"status": "ok"})
-    except Exception as e:
-        return JsonResponse({"status": "error", "detail": str(e)}, status=503)
+    except Exception:
+        return JsonResponse({"status": "error"}, status=503)
 
 urlpatterns = [
     path("healthz/", healthz, name="healthz"),
