@@ -1,6 +1,6 @@
 [project]
 name = "fragforce-read"
-version = "1.0.2"
+version = "1.0.3"
 description = "Audio playback service for the VTO Book Reading project"
 requires-python = ">=3.13"
 dependencies = [
