@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Narrator Portal - Fragforce Reads{% endblock %}
+
+{% block content %}
+<div class="dashboard-greeting">
+    <h2>Welcome back, {{ narrator.name }} <a href="{% url 'portal:profile' %}" class="profile-link">Edit profile</a></h2>
+</div>
+
+<div class="section">
+    <h2>My Recordings</h2>
+    {% if my_recordings %}
+    <ul class="book-list">
+        {% for recording in my_recordings %}
+        <li class="book-item">
+            <div class="book-info">
+                <div class="book-title">{{ recording.book.title }}</div>
+                <div class="book-meta">{{ recording.book.author }}{% if recording.book.illustrator %} &middot; Illustrated by {{ recording.book.illustrator }}{% endif %}</div>
+                <div class="recording-status">
+                    Recorded {{ recording.created_at|date:"M j, Y" }}{% if recording.duration_seconds %} &middot; {{ recording.duration_formatted }}{% endif %}
+                    {% if recording.status == "processing" or recording.status == "pending" %} &middot; <span class="processing-badge">Processing</span>{% endif %}
+                    {% if recording.status == "failed" %} &middot; <span class="flag-badge">Failed</span>{% endif %}
+                    {% if recording.flagged_for_review %} &middot; <span class="flag-badge">Flagged</span>{% endif %}
+                </div>
+            </div>
+            <a href="{% url 'portal:recording_detail' recording_id=recording.id %}" class="btn">View</a>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p class="empty-state">You haven't recorded any books yet.</p>
+    {% endif %}
+</div>
+
+<div class="section">
+    <h2>Available Books</h2>
+    {% if available_books %}
+    <ul class="book-list">
+        {% for item in available_books %}
+        <li class="book-item">
+            <div class="book-info">
+                <div class="book-title">{{ item.book.title }}</div>
+                <div class="book-meta">
+                    {{ item.book.author }}{% if item.book.illustrator %} &middot; Illustrated by {{ item.book.illustrator }}{% endif %}
+                    {% if item.book.estimated_duration %} &middot; ~{{ item.book.estimated_duration }}{% endif %}
+                </div>
+                <div class="book-meta">
+                    <span class="book-badge {% if item.book.public_domain %}badge-public{% else %}badge-licensed{% endif %}">
+                        {% if item.book.public_domain %}Public Domain{% else %}Licensed{% endif %}
+                    </span>
+                    {% if item.book.max_narrators != None %}
+                    &middot; {{ item.recording_count }}/{{ item.book.max_narrators }} recordings
+                    {% else %}
+                    &middot; {{ item.recording_count }} recording{{ item.recording_count|pluralize }}
+                    {% endif %}
+                </div>
+            </div>
+            <a href="{% url 'portal:preflight' book_id=item.book.id %}" class="btn btn-primary">Record</a>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p class="empty-state">No books available for recording right now.</p>
+    {% endif %}
+</div>
+{% endblock %}

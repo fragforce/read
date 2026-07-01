@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>QR Labels - {{ book.title }}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; padding: 0.5in; }
+        h1 { font-size: 16pt; margin-bottom: 0.25in; }
+
+        .label-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.25in;
+        }
+
+        .label {
+            border: 1px dashed #ccc;
+            padding: 0.2in;
+            display: flex;
+            gap: 0.2in;
+            page-break-inside: avoid;
+        }
+
+        .label-qr img {
+            width: 1.5in;
+            height: 1.5in;
+        }
+
+        .label-text {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            font-size: 9pt;
+            line-height: 1.4;
+        }
+
+        .label-title {
+            font-weight: bold;
+            font-size: 10pt;
+            margin-bottom: 2pt;
+        }
+
+        .label-narrator { margin-bottom: 2pt; }
+        .label-password { margin-bottom: 2pt; font-weight: bold; }
+
+        .label-url {
+            font-size: 7pt;
+            word-break: break-all;
+            color: #555;
+            margin-top: 4pt;
+        }
+
+        .label-branding {
+            font-size: 8pt;
+            color: #888;
+            margin-top: auto;
+            padding-top: 4pt;
+        }
+
+        @media print {
+            body { padding: 0.25in; }
+            .label { border: 1px dashed #999; }
+            h1 { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <h1>{{ book.title }} - QR Labels</h1>
+    <div class="label-grid">
+        {% for item in items %}
+        <div class="label">
+            <div class="label-qr">
+                <img src="{% url 'books:qr_png' qr_id=item.qr_code.id %}" alt="QR code">
+            </div>
+            <div class="label-text">
+                <div class="label-title">{{ book.title }}</div>
+                <div class="label-narrator">Read by {{ item.narrator_name }}</div>
+                {% if item.qr_code.password %}<div class="label-password">Password: {{ item.qr_code.password }}</div>{% endif %}
+                <div class="label-url">{{ item.url }}</div>
+                <div class="label-branding">Fragforce Reads</div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</body>
+</html>

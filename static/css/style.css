@@ -1,0 +1,584 @@
+:root {
+    --color-fragforce-blue: #4e738b;
+    --color-fragforce-purple: #5c2751;
+    --color-fragforce-gold: #f09b00;
+    --color-bg: #253137;
+    --color-surface: #37474f;
+    --color-text: #ffffff;
+    --color-muted: #aaa;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    line-height: 1.6;
+}
+
+h1, h2, h3 {
+    font-family: 'Oswald', sans-serif;
+    color: var(--color-fragforce-blue);
+}
+
+h2 {
+    border-bottom: 2px solid var(--color-fragforce-blue);
+    padding-bottom: 4px;
+    margin-bottom: 1rem;
+}
+
+a, a:visited {
+    color: var(--color-fragforce-blue);
+    text-decoration: none;
+}
+
+a:hover {
+    color: var(--color-fragforce-gold);
+    text-decoration: underline;
+}
+
+/* Layout */
+
+header {
+    background-color: var(--color-fragforce-purple);
+    padding: 1rem 2rem;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+header nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+header a {
+    color: var(--color-text);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+header h1 {
+    font-size: 1.5rem;
+    color: var(--color-text);
+}
+
+.nav-icon {
+    color: var(--color-fragforce-blue);
+}
+
+.nav-icon:hover {
+    color: var(--color-fragforce-gold);
+}
+
+main {
+    flex: 1;
+    padding: 2rem;
+    max-width: 800px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+footer {
+    padding: 1rem 2rem;
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--color-muted);
+}
+
+/* Components */
+
+.card {
+    background-color: var(--color-bg);
+    border: none;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.btn {
+    display: inline-block;
+    padding: 0.6rem 1.5rem;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-weight: 500;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    border: none;
+}
+
+.btn:visited {
+    color: inherit;
+}
+
+.btn:hover {
+    text-decoration: none;
+}
+
+.btn-primary,
+.btn-primary:visited {
+    background: var(--color-fragforce-purple);
+    color: var(--color-text);
+}
+
+.btn-primary:hover {
+    background: var(--color-fragforce-gold);
+    color: var(--color-text);
+}
+
+.error {
+    color: var(--color-fragforce-gold);
+    margin-top: 1rem;
+}
+
+.success {
+    color: #4caf50;
+    margin-top: 1rem;
+}
+
+/* Forms */
+
+label {
+    display: block;
+    margin-top: 1rem;
+    margin-bottom: 0.25rem;
+    font-weight: 500;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+    width: 100%;
+    max-width: 400px;
+    padding: 0.5rem;
+    font-size: 1rem;
+    border: 1px solid var(--color-fragforce-blue);
+    border-radius: 4px;
+    background: var(--color-surface);
+    color: var(--color-text);
+}
+
+
+.form-actions {
+    margin-top: 1.5rem;
+}
+
+/* Passphrase box (welcome page) */
+
+.passphrase-box {
+    background: var(--color-surface);
+    border: 1px solid var(--color-fragforce-blue);
+    border-radius: 4px;
+    padding: 1rem;
+    margin: 1rem 0;
+    font-family: monospace;
+    font-size: 1.1rem;
+    overflow-wrap: break-word;
+}
+
+.text-muted {
+    font-size: 0.875rem;
+    color: var(--color-muted);
+}
+
+.mt-1 {
+    margin-top: 1.5rem;
+}
+
+ol, ul {
+    padding-left: 1.5rem;
+    margin-top: 0.5rem;
+}
+
+/* Checklist */
+
+.checklist {
+    margin-top: 1.5rem;
+}
+
+.checklist-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+    background: var(--color-surface);
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: normal;
+}
+
+.checklist-item input[type="checkbox"] {
+    width: 1.25rem;
+    height: 1.25rem;
+    accent-color: var(--color-fragforce-blue);
+    flex-shrink: 0;
+}
+
+.checklist-item span {
+    font-size: 1rem;
+}
+
+.checklist-item--missed {
+    border: 1px solid var(--color-fragforce-gold);
+}
+
+/* Playback page */
+
+.book-info {
+    margin-bottom: 1.5rem;
+}
+
+.book-info p {
+    margin: 0.25rem 0;
+}
+
+.password-form input {
+    margin-right: 0.5rem;
+}
+
+audio {
+    width: 100%;
+    margin-top: 1rem;
+}
+
+.narrator {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+    color: var(--color-fragforce-blue);
+}
+
+.attribution {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--color-surface);
+    font-size: 0.85rem;
+    color: var(--color-muted);
+}
+
+/* Dashboard */
+
+.dashboard-greeting {
+    margin-bottom: 2rem;
+}
+
+.profile-link {
+    font-family: 'Roboto', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 400;
+    vertical-align: middle;
+}
+
+.book-list {
+    list-style: none;
+    padding: 0;
+}
+
+.book-item {
+    background: var(--color-surface);
+    border-radius: 4px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.book-item .book-info {
+    flex: 1;
+    min-width: 0;
+    margin-bottom: 0;
+}
+
+.book-title {
+    font-family: 'Oswald', sans-serif;
+    font-size: 1.1rem;
+    color: var(--color-text);
+}
+
+.book-meta {
+    font-size: 0.85rem;
+    color: var(--color-muted);
+    margin-top: 0.25rem;
+}
+
+.book-badge {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 3px;
+    white-space: nowrap;
+}
+
+.badge-public {
+    background: var(--color-fragforce-blue);
+    color: var(--color-text);
+}
+
+.badge-licensed {
+    background: var(--color-fragforce-purple);
+    color: var(--color-text);
+}
+
+.recording-status {
+    font-size: 0.8rem;
+    color: var(--color-muted);
+}
+
+.empty-state {
+    color: var(--color-muted);
+    font-style: italic;
+    padding: 1rem 0;
+}
+
+.section {
+    margin-bottom: 2.5rem;
+}
+
+/* Recording preparation */
+
+.form-select {
+    width: 100%;
+    max-width: 400px;
+    padding: 0.5rem;
+    font-size: 1rem;
+    border: 1px solid var(--color-fragforce-blue);
+    border-radius: 4px;
+    background: var(--color-surface);
+    color: var(--color-text);
+}
+
+.mic-setup {
+    margin-top: 0.5rem;
+}
+
+.vu-meter-container {
+    margin-top: 1rem;
+}
+
+.vu-meter {
+    height: 1rem;
+    background: var(--color-surface);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 0.25rem;
+    border: 1px solid var(--color-fragforce-blue);
+}
+
+.vu-meter-bar {
+    height: 100%;
+    width: 0%;
+    background: var(--color-fragforce-purple);
+    transition: width 0.05s linear;
+}
+
+.vu-meter-bar.vu-hot {
+    background: var(--color-fragforce-gold);
+}
+
+.script-box {
+    background: var(--color-surface);
+    border-radius: 4px;
+    padding: 1rem;
+    margin-top: 0.75rem;
+}
+
+.script-label {
+    font-size: 0.85rem;
+    color: var(--color-muted);
+    margin-bottom: 0.5rem;
+}
+
+.script-text {
+    font-style: italic;
+    line-height: 1.8;
+    border-left: 3px solid var(--color-fragforce-purple);
+    padding-left: 1rem;
+}
+
+.book-text-container {
+    max-height: 400px;
+    overflow-y: auto;
+    background: var(--color-surface);
+    border-radius: 4px;
+    padding: 1.5rem;
+    margin-top: 0.5rem;
+    line-height: 1.8;
+}
+
+.physical-book-notice {
+    background: var(--color-surface);
+    border-radius: 4px;
+    padding: 1rem;
+    margin-top: 0.5rem;
+    border-left: 3px solid var(--color-fragforce-gold);
+}
+
+.form-textarea {
+    width: 100%;
+    max-width: 500px;
+    padding: 0.5rem;
+    font-size: 1rem;
+    border: 1px solid var(--color-fragforce-blue);
+    border-radius: 4px;
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-family: inherit;
+    resize: vertical;
+}
+
+.flag-notice {
+    background: var(--color-surface);
+    border-radius: 4px;
+    padding: 1.25rem;
+    border-left: 3px solid var(--color-fragforce-gold);
+}
+
+.flag-notice h3 {
+    color: var(--color-fragforce-gold);
+    margin-bottom: 0.5rem;
+}
+
+.flag-badge {
+    color: var(--color-fragforce-gold);
+    font-weight: 500;
+}
+
+.processing-notice {
+    background: var(--color-surface);
+    border-radius: 4px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    border-left: 3px solid var(--color-fragforce-blue);
+}
+
+.processing-badge {
+    color: var(--color-fragforce-blue);
+    font-weight: 500;
+}
+
+.noscript-notice {
+    background: var(--color-surface);
+    border-radius: 4px;
+    padding: 1.5rem;
+    border-left: 3px solid var(--color-fragforce-gold);
+}
+
+.noscript-notice h3 {
+    margin-bottom: 0.5rem;
+    color: var(--color-fragforce-gold);
+}
+
+/* Recording workflow */
+
+.hidden {
+    display: none !important;
+}
+
+.recording-active {
+    background: var(--color-surface);
+    border-radius: 4px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.recording-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin-bottom: 0.75rem;
+}
+
+.rec-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #e53935;
+    animation: rec-pulse 1s ease-in-out infinite;
+}
+
+.rec-dot.rec-paused {
+    background: var(--color-fragforce-gold);
+    animation: none;
+}
+
+@keyframes rec-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+.recording-timer {
+    font-family: monospace;
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: var(--color-text);
+}
+
+.recording-controls {
+    display: flex;
+    gap: 1rem;
+}
+
+.btn-danger {
+    background: #c62828;
+    color: var(--color-text);
+}
+
+.btn-danger:hover {
+    background: #e53935;
+    color: var(--color-text);
+}
+
+.recording-duration {
+    margin-top: 0.5rem;
+}
+
+.upload-progress {
+    margin: 1rem 0;
+}
+
+.progress-bar {
+    height: 0.75rem;
+    background: var(--color-surface);
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid var(--color-fragforce-blue);
+}
+
+.progress-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--color-fragforce-purple);
+    transition: width 0.2s ease;
+}
+
+.attestation-box {
+    background: var(--color-surface);
+    border-radius: 4px;
+    padding: 1.25rem;
+    margin: 1rem 0;
+    border-left: 3px solid var(--color-fragforce-blue);
+    line-height: 1.8;
+}

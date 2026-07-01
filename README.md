@@ -13,14 +13,14 @@ Audio playback service for the VTO Book Reading project. Salesforce/Fragforce vo
 
 | Component | Description |
 |-----------|-------------|
-| **Playback service** | Password-gated page at `read.fragforce.org/b/{id}` that streams audio via HLS/MSE |
+| **Playback service** | Password-gated page at `read.fragforce.org/b/{id}` that streams audio via HTML5 `<audio>` with byte-range support |
 | **Narrator portal** | Web interface where volunteers select a book, record in-browser, and submit attestation |
 | **Admin panel** | Manage books, narrators, recordings, QR codes, and passwords |
 
 ## Architecture
 
 ```
-QR Code + Password -> read.fragforce.org/b/{id} -> Password Gate -> Stream-Only Playback (HLS/MSE)
+QR Code -> read.fragforce.org/code/{short_code} -> Playback Page -> Password Gate -> Audio Streaming
 
 Narrator Portal -> Book Queue -> Pre-flight -> In-Browser Recording -> Attestation -> Upload
 
@@ -30,10 +30,10 @@ Admin Panel -> Book/Narrator Management -> QR + Password Generation -> Attestati
 ## Key Constraints
 
 - **Password-gated access** - each QR code has a unique password, server-side validated
-- **Stream-only playback** - HLS or MSE, no direct file download links
+- **No direct download** - audio served via byte-range streaming, no file download links
 - **No public indexing** - `noindex` meta tags and `X-Robots-Tag` headers
 - **Attribution** - publisher, author, illustrator displayed on page and spoken at beginning/end of each recording
-- **Opaque URLs** - short random IDs (nanoid), not human-readable slugs
+- **Opaque URLs** - random 8-character short codes for QR links, UUIDs for internal IDs
 
 These are commitments made in the publisher permission letter.
 
@@ -42,14 +42,19 @@ These are commitments made in the publisher permission letter.
 - Hosted on existing Fragforce infrastructure (container-based)
 - Cloudflare for DNS and caching
 - `read.fragforce.org` subdomain
-- CI/CD builds images, manual deploy to dev/prod
+- CI builds images to GHCR on push to `dev`/`main` (see `.github/workflows/`)
 - Expected scale: 10-50 audio files, under 1 GB total
 
 ## Development
 
-Built with Django, deployed as Docker containers. Consistent with fragforce.org and existing Fragforce infrastructure patterns.
+Built with Django 6.0, Python 3.13, deployed as Docker containers.
 
-See [REQUIREMENTS.md](REQUIREMENTS.md) for full technical requirements.
+```bash
+docker compose up -d          # start dev server
+docker compose run --rm test  # run tests
+```
+
+See [DEVELOPMENT.md](DEVELOPMENT.md) for full setup and workflow documentation, and [REQUIREMENTS.md](REQUIREMENTS.md) for technical requirements.
 
 ## Timeline
 

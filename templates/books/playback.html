@@ -2,60 +2,6 @@
 
 {% block title %}{{ book.title }} - Fragforce Reads{% endblock %}
 
-{% block extra_css %}
-.book-info {
-    margin-bottom: 1.5rem;
-}
-
-.book-info p {
-    margin: 0.25rem 0;
-}
-
-.password-form input {
-    padding: 0.5rem;
-    font-size: 1rem;
-    border: 1px solid #46a4e8;
-    border-radius: 4px;
-    background: #37474f;
-    color: #fff;
-    margin-right: 0.5rem;
-}
-
-.password-form button {
-    padding: 0.5rem 1rem;
-    font-size: 1rem;
-    background: #46a4e8;
-    color: #253137;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: 500;
-}
-
-.password-form button:hover {
-    background: #5bb5f5;
-}
-
-audio {
-    width: 100%;
-    margin-top: 1rem;
-}
-
-.narrator {
-    font-size: 1.1rem;
-    margin-bottom: 0.5rem;
-    color: #46a4e8;
-}
-
-.attribution {
-    margin-top: 1.5rem;
-    padding-top: 1rem;
-    border-top: 1px solid #37474f;
-    font-size: 0.85rem;
-    color: #aaa;
-}
-{% endblock %}
-
 {% block content %}
 <div class="card">
     <div class="book-info">
@@ -63,21 +9,48 @@ audio {
         <p>by {{ book.author }}</p>
         {% if book.illustrator %}<p>Illustrated by: {{ book.illustrator }}</p>{% endif %}
         {% if not book.public_domain and book.publisher %}<p>Published by: {{ book.publisher }}</p>{% endif %}
+        <p class="narrator">Read by: {{ recording.narrator.name }}</p>
     </div>
 
     {% if password_required and not password_valid %}
+    {% if auth_error %}
+    <p class="error">{{ auth_error }}</p>
+    {% endif %}
     <form method="post" class="password-form">
         {% csrf_token %}
-        <label for="password">Enter password to listen:</label><br><br>
+        <label for="password">Enter password to listen:</label>
         <input type="text" id="password" name="password" autocomplete="off" required>
-        <button type="submit">Unlock</button>
+        <button type="submit" class="btn btn-primary">Unlock</button>
     </form>
     {% elif password_valid %}
-    <p class="narrator">As read by: {{ recording.narrator.name }}</p>
-    <audio controls>
-        <source src="{{ recording.audio_file.url }}" type="audio/mpeg">
+    <audio id="audio-player" controls>
+        <source src="{% url 'books:serve_recording' recording_id=recording.id %}" type="audio/webm">
         <p>Sorry, your browser does not support audio playback.</p>
     </audio>
+    {% if recording.duration_seconds %}
+    <p class="text-muted"><span id="duration-display">{{ recording.duration_formatted }}</span></p>
+    <script>
+    (function() {
+        var audio = document.getElementById('audio-player');
+        var stored = {{ recording.duration_seconds }};
+        var display = document.getElementById('duration-display');
+
+        function fmt(s) {
+            var m = Math.floor(s / 60);
+            var sec = Math.floor(s % 60);
+            return m + ':' + (sec < 10 ? '0' : '') + sec;
+        }
+
+        display.textContent = fmt(stored);
+
+        audio.addEventListener('loadedmetadata', function() {
+            if (isFinite(audio.duration) && audio.duration > 0) {
+                display.textContent = fmt(audio.duration);
+            }
+        });
+    })();
+    </script>
+    {% endif %}
 
     {% if not book.public_domain and book.permission_phrasing %}
     <div class="attribution">

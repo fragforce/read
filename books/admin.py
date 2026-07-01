@@ -1,18 +1,22 @@
 from django.contrib import admin
 from django.http import HttpResponseRedirect
-from django.urls import path
 from django.utils.html import format_html
 
-from .models import Book, Narrator, Recording, QRCode, Attestation
+from .models import Attestation, Book, Narrator, QRCode, Recording
 
 
 @admin.register(Book)
 class BookAdmin(admin.ModelAdmin):
-    list_display = ("title", "author", "public_domain", "id")
+    list_display = ("title", "author", "public_domain", "id", "qr_sheet_link")
     list_filter = ("public_domain",)
     search_fields = ("title", "author")
     prepopulated_fields = {"slug": ("title",)}
     readonly_fields = ("id",)
+
+    @admin.display(description="QR Sheet")
+    def qr_sheet_link(self, obj):
+        url = f"/b/qr/sheet/{obj.id}/"
+        return format_html('<a href="{}" target="_blank">Print</a>', url)
 
     def get_exclude(self, request, obj=None):
         if obj is None:
@@ -69,15 +73,40 @@ class NarratorAdmin(admin.ModelAdmin):
 
 @admin.register(Recording)
 class RecordingAdmin(admin.ModelAdmin):
-    list_display = ("book", "narrator", "duration_seconds", "created_at")
-    list_filter = ("book",)
+    list_display = ("book", "narrator", "status", "duration_seconds", "flagged_for_review", "created_at")
+    list_filter = ("book", "status", "flagged_for_review")
     search_fields = ("narrator__name",)
+    readonly_fields = ("status",)
+    actions = ["retry_failed_recordings"]
+
+    @admin.action(description="Retry remuxing for selected failed recordings")
+    def retry_failed_recordings(self, request, queryset):
+        from .models import RecordingStatus
+        from .processing import spawn_remux
+
+        failed = queryset.filter(status=RecordingStatus.FAILED)
+        failed_ids = list(failed.values_list("id", flat=True))
+        failed.update(status=RecordingStatus.PENDING)
+        for recording_id in failed_ids:
+            spawn_remux(recording_id)
+        self.message_user(request, f"Retrying {len(failed_ids)} recording(s).")
 
 
 @admin.register(QRCode)
 class QRCodeAdmin(admin.ModelAdmin):
-    list_display = ("book", "recording", "label_text", "password")
+    list_display = ("book", "recording", "short_code", "label_text", "password", "qr_links")
     list_filter = ("book",)
+    readonly_fields = ("short_code",)
+
+    @admin.display(description="QR")
+    def qr_links(self, obj):
+        png_url = f"/b/qr/{obj.id}.png"
+        svg_url = f"/b/qr/{obj.id}.svg"
+        label_url = f"/b/qr/{obj.id}/label.png"
+        return format_html(
+            '<a href="{}">PNG</a> | <a href="{}">SVG</a> | <a href="{}">Label</a>',
+            png_url, svg_url, label_url,
+        )
 
 
 @admin.register(Attestation)

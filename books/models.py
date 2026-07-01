@@ -1,5 +1,8 @@
+import os
 import secrets
 import uuid
+
+from django.conf import settings
 from django.db import models
 
 # Lowercase alphanumeric minus easily confused characters: 0/O, 1/I/l
@@ -55,23 +58,86 @@ class Narrator(models.Model):
         return self.name
 
 
+def recording_upload_path(instance, filename):
+    ext = filename.rsplit(".", 1)[-1] if "." in filename else "webm"
+    return f"recordings/{instance.id}.{ext}"
+
+
+class RecordingStatus(models.TextChoices):
+    PENDING = "pending"
+    PROCESSING = "processing"
+    READY = "ready"
+    FAILED = "failed"
+
+
 class Recording(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name="recordings")
     narrator = models.ForeignKey(Narrator, on_delete=models.CASCADE, related_name="recordings")
-    audio_file = models.FileField(upload_to="recordings/")
+    audio_file = models.FileField(upload_to=recording_upload_path)
     duration_seconds = models.PositiveIntegerField(null=True, blank=True)
+    status = models.CharField(
+        max_length=12,
+        choices=RecordingStatus.choices,
+        default=RecordingStatus.PENDING,
+        db_index=True,
+    )
+    flagged_for_review = models.BooleanField(default=False)
+    flag_reason = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def finalized_path(self):
+        return os.path.join(settings.MEDIA_ROOT, "finalized", f"{self.id}.webm")
+
+    @property
+    def processing_path(self):
+        return os.path.join(settings.MEDIA_ROOT, "processing", f"{self.id}.webm")
+
+    @property
+    def duration_formatted(self):
+        if not self.duration_seconds:
+            return None
+        m, s = divmod(self.duration_seconds, 60)
+        return f"{m}:{s:02d}"
 
     def __str__(self):
         return f"{self.book.title} - {self.narrator.name}"
 
 
+QR_CODE_ALPHABET = "23456789abcdefghjkmnpqrstuvwxyz"
+
+
+def generate_qr_short_code():
+    from django.apps import apps
+
+    try:
+        QRCode = apps.get_model("books", "QRCode")
+    except LookupError:
+        return "".join(secrets.choice(QR_CODE_ALPHABET) for _ in range(8))
+
+    for _ in range(100):
+        candidate = "".join(secrets.choice(QR_CODE_ALPHABET) for _ in range(8))
+        if not QRCode.objects.filter(short_code=candidate).exists():
+            return candidate
+    raise RuntimeError("Failed to generate unique QR short code after 100 attempts")
+
+
+def generate_qr_password():
+    from registration.wordlist import WORDS
+
+    word1 = secrets.choice(WORDS).lower()
+    word2 = secrets.choice(WORDS).lower()
+    digits = "".join(secrets.choice("0123456789") for _ in range(2))
+    return f"{word1}-{word2}-{digits}"
+
+
 class QRCode(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    short_code = models.CharField(max_length=8, unique=True, default=generate_qr_short_code)
     book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name="qr_codes")
     recording = models.ForeignKey(Recording, on_delete=models.SET_NULL, null=True, blank=True, related_name="qr_codes")
-    password = models.CharField(max_length=10, blank=True)
+    password = models.CharField(max_length=30, default=generate_qr_password)
     label_text = models.CharField(max_length=255)
 
     class Meta:

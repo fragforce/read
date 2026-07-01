@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}{{ book.title }} - No Longer Available{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="book-info">
+        <h2>{{ book.title }}</h2>
+        <p>by {{ book.author }}</p>
+    </div>
+    <p>This recording is no longer available. The license for this book has expired.</p>
+</div>
+{% endblock %}

@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}{{ recording.book.title }} - My Recording - Fragforce Reads{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>{{ recording.book.title }}</h2>
+    <p class="book-meta">by {{ recording.book.author }}</p>
+
+    <div class="section">
+        <h3>Your Recording</h3>
+        {% if recording.status == "pending" or recording.status == "processing" %}
+        <div class="processing-notice">
+            <p>Your recording is being prepared for playback. Seeking will work once processing completes. Refresh to check.</p>
+        </div>
+        {% elif recording.status == "failed" %}
+        <div class="flag-notice">
+            <p>There was an issue preparing your recording for playback. An admin has been notified.</p>
+        </div>
+        {% endif %}
+        <audio id="audio-player" controls src="{% url 'books:serve_recording' recording_id=recording.id %}"></audio>
+        <p class="text-muted">
+            Recorded {{ recording.created_at|date:"M j, Y" }}{% if recording.duration_seconds %} &middot; <span id="duration-display">{{ recording.duration_formatted }}</span>{% endif %}
+        </p>
+    </div>
+
+    {% if recording.duration_seconds %}
+    <script>
+    (function() {
+        var audio = document.getElementById('audio-player');
+        var stored = {{ recording.duration_seconds }};
+        var display = document.getElementById('duration-display');
+
+        function fmt(s) {
+            var m = Math.floor(s / 60);
+            var sec = Math.floor(s % 60);
+            return m + ':' + (sec < 10 ? '0' : '') + sec;
+        }
+
+        display.textContent = fmt(stored);
+
+        audio.addEventListener('loadedmetadata', function() {
+            if (isFinite(audio.duration) && audio.duration > 0) {
+                display.textContent = fmt(audio.duration);
+            }
+        });
+    })();
+    </script>
+    {% endif %}
+
+    {% if recording.flagged_for_review %}
+    <div class="section">
+        <div class="flag-notice">
+            <h3>Flagged for Admin Review</h3>
+            <p>{{ recording.flag_reason }}</p>
+        </div>
+        <p class="mt-1">
+            <a href="{% url 'portal:preflight' book_id=recording.book.id %}" class="btn btn-primary">Re-record this book</a>
+        </p>
+    </div>
+    {% else %}
+    <div class="section">
+        <h3>Request Review</h3>
+        <p class="text-muted">If something went wrong with this recording (background noise, misread passage, technical issue), you can flag it for admin review.</p>
+
+        {% if error %}<p class="error">{{ error }}</p>{% endif %}
+
+        <form method="post" action="{% url 'portal:flag_recording' recording_id=recording.id %}">
+            {% csrf_token %}
+            <label for="reason">What's the issue?</label>
+            <textarea id="reason" name="reason" class="form-textarea" rows="3" placeholder="e.g. There's loud background noise starting at the 2-minute mark"></textarea>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-danger">Flag for Review</button>
+            </div>
+        </form>
+    </div>
+    {% endif %}
+
+    <p class="mt-1"><a href="{% url 'portal:dashboard' %}">&larr; Back to Dashboard</a></p>
+</div>
+{% endblock %}
