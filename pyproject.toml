@@ -14,7 +14,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "coverage>=7.0",
+    "coverage>=7.15.2",
     "django-debug-toolbar>=5.0",
     "pytest>=9.1.1",
     "pytest-django>=4.9",
