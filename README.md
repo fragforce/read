@@ -1,4 +1,6 @@
 # Fragforce Read
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Ffragforce%2Fread.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Ffragforce%2Fread?ref=badge_shield)
+
 
 Audio playback service for the VTO Book Reading project. Salesforce/Fragforce volunteers record themselves reading children's books aloud, and this service delivers those recordings to patients at Children's Miracle Network hospitals via QR codes.
 
@@ -64,3 +66,6 @@ See [DEVELOPMENT.md](DEVELOPMENT.md) for full setup and workflow documentation, 
 ## License
 
 MIT - see [LICENSE](LICENSE)
+
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Ffragforce%2Fread.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Ffragforce%2Fread?ref=badge_large)
